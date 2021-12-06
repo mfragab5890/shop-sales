@@ -53,7 +53,7 @@ def create_app(test_config=None):
     def get_home_data():
         return jsonify({
             'success': True,
-            'message': 'welcome to furry'
+            'message': 'welcome to Fiori'
         })
 
     # ----------------------------------------------------------------------------#

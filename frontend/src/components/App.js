@@ -1,6 +1,10 @@
 import React from 'react'
 import { getHomeData } from '../utils/api'
-import './App.css';
+import 'semantic-ui-css/semantic.min.css'
+import { Container } from 'semantic-ui-react'
+import AppHeader from './AppHeader'
+import AppBody from './AppBody'
+import AppFooter from './AppFooter'
 
 class App extends React.Component {
   state = {
@@ -23,9 +27,11 @@ class App extends React.Component {
     const { homeData } = this.state
     console.log( 'this is state', homeData);
     return (
-      <div className="App">
-        {homeData.message}
-      </div>
+      <Container fluid>
+        <AppHeader data = {homeData}/>
+        <AppBody />
+        <AppFooter />
+      </Container>
     );
   }
 
