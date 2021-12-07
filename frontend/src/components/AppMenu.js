@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Menu, Icon } from 'semantic-ui-react'
 
 export default class AppMenu extends Component {
-  state = { activeItem: 'gamepad' }
+  state = { activeItem: 'sales' }
 
   handleItemClick = (e, { name }) => this.setState({ activeItem: name })
 
@@ -12,30 +12,30 @@ export default class AppMenu extends Component {
     return (
       <Menu fluid size='mini' icon='labeled' vertical tabular>
         <Menu.Item
-          name='gamepad'
-          active={activeItem === 'gamepad'}
+          name='sales'
+          active={activeItem === 'sales'}
           onClick={this.handleItemClick}
         >
-          <Icon name='gamepad' />
-          Games
+          <Icon name='shopping cart' />
+          Sales
         </Menu.Item>
 
         <Menu.Item
-          name='video camera'
-          active={activeItem === 'video camera'}
+          name='financial'
+          active={activeItem === 'financial'}
           onClick={this.handleItemClick}
         >
-          <Icon name='video camera' />
-          Channels
+          <Icon name='calculator' />
+          Financial
         </Menu.Item>
 
         <Menu.Item
-          name='video play'
-          active={activeItem === 'video play'}
+          name='products'
+          active={activeItem === 'products'}
           onClick={this.handleItemClick}
         >
-          <Icon name='video play' />
-          Videos
+          <Icon name='gem' />
+          Products
         </Menu.Item>
       </Menu>
     )
