@@ -10,7 +10,7 @@ export default class AppMenu extends Component {
     const { activeItem } = this.state
 
     return (
-      <Menu inverted attached = 'left' icon='labeled' vertical pointing >
+      <Menu inverted icon='labeled' compact vertical pointing >
         <Menu.Item
           name='sales'
           active={activeItem === 'sales'}
