@@ -1,5 +1,5 @@
 import React from 'react'
-import { Header, Image, Segment, Grid, Button, Dropdown, Input } from 'semantic-ui-react'
+import { Header, Image, Grid, Dropdown } from 'semantic-ui-react'
 
 const themeOptions = [
   {
@@ -58,7 +58,6 @@ const themeOptions = [
   },
 ]
 
-
 const langOptions = [
   {
     key: 'AR',
@@ -71,46 +70,62 @@ const langOptions = [
     value: 'EN',
   },
 ]
-const AppHeader = () => (
-  <segment>
-    <Grid centered columns = {3} textAlign='center' verticalAlign='middle'>
-      <Grid.Row centered stretched color='black'>
-        <Grid.Column width={3} >
-          <Image circular size = 'mini' src='/logo.png' centred />
-        </Grid.Column>
-        <Grid.Column width={9}>
-          <Header as='h1' inverted color='grey' textAlign='center' >
-            Fiori Store
-          </Header>
-        </Grid.Column>
-        <Grid.Column width={4}>
-          <Header as='h4' inverted color='grey' floated = 'right' textAlign='center' >
-            <Dropdown  multiple icon='settings'>
-              <Dropdown.Menu>
-                <Dropdown.Divider />
-                <Dropdown.Header icon='theme' content='Theme' />
-                <Dropdown.Menu scrolling style = {{height:180}}>
-                  {themeOptions.map((option) => (
-                    <Dropdown.Item key={option.value} {...option} />
-                  ))}
-                </Dropdown.Menu>
-                <Dropdown.Divider />
-                <Dropdown.Header icon='settings' content='Lang' />
-                <Dropdown.Menu scrolling>
-                  {langOptions.map((option) => (
-                    <Dropdown.Item key={option.value} {...option} />
-                  ))}
-                </Dropdown.Menu>
-              </Dropdown.Menu>
-            </Dropdown>
-            Logged in as Mostafa fouad
-          </Header>
 
-        </Grid.Column>
-    </Grid.Row>
-  </Grid>
-  </segment>
 
-)
+export default class AppHeader extends React.Component {
 
-export default AppHeader
+  handleThemeChange = (e, { value }) => {
+    const { onThemeChange } = this.props
+    onThemeChange(value)
+  }
+
+  handleLangChange = (e, { value }) => {
+    const { onLangChange } = this.props
+    onLangChange(value)
+  }
+
+  render(){
+    const { theme, lang } = this.props
+    return (
+      <div>
+        <Grid centered columns = {3} textAlign='center' verticalAlign='middle'>
+          <Grid.Row centered stretched color={theme}>
+            <Grid.Column width={3} >
+              <Image circular size = 'mini' src='/logo.png' centered />
+            </Grid.Column>
+            <Grid.Column width={9}>
+              <Header as='h1' inverted = {theme !== 'basic'? true : false} color={theme !== 'basic'? null : 'black'} textAlign='center' >
+                Fiori Store
+              </Header>
+            </Grid.Column>
+            <Grid.Column width={4}>
+              <Header as='h4' inverted = {theme !== 'basic'? true : false} color={theme !== 'basic'? null : 'black'} floated = 'right' textAlign='center' >
+                <Dropdown  multiple icon='settings'>
+                  <Dropdown.Menu>
+                    <Dropdown.Divider />
+                    <Dropdown.Header icon='theme' content='Theme' />
+                    <Dropdown.Menu scrolling style = {{height:180, overflowX: 'auto'}}>
+                      {themeOptions.map((option) => (
+                        <Dropdown.Item key={option.value} {...option} onClick = {this.handleThemeChange}/>
+                      ))}
+                    </Dropdown.Menu>
+                    <Dropdown.Divider />
+                    <Dropdown.Header icon='settings' content='Lang' />
+                    <Dropdown.Menu scrolling>
+                      {langOptions.map((option) => (
+                        <Dropdown.Item key={option.value} {...option} onClick = {this.handleLangChange}/>
+                      ))}
+                    </Dropdown.Menu>
+                  </Dropdown.Menu>
+                </Dropdown>
+                {lang === 'EN' ? 'Logged in as': 'المستخدم' } Mostafa fouad
+              </Header>
+
+            </Grid.Column>
+        </Grid.Row>
+      </Grid>
+    </div>
+    );
+  }
+
+}
