@@ -8,29 +8,68 @@ import AppFooter from './AppFooter'
 
 class App extends React.Component {
   state = {
-    homeData: {}
+    homeData: {},
+    theme: 'black',
+    lang: 'EN',
+  }
+
+  handleThemeChange = (theme) => {
+    const colors = [
+      'basic',
+      'black',
+      'red',
+      'blue',
+      'purple',
+      'orange',
+      'yellow',
+      'pink',
+      'green',
+      ]
+    if (colors.includes(theme)) {
+      this.setState({
+        theme: theme
+      })
+    }
+  }
+  handleLangChange = (lang) => {
+    const langs = [ 'AR', 'EN' ]
+    if (langs.includes(lang)) {
+      this.setState({
+        lang: lang
+      })
+    }
+
   }
   componentDidMount(){
     let homeData = null
     getHomeData()
     .then(data => {
-      console.log(data);
       homeData = data
       return this.setState({
         homeData: homeData
       });
     })
     .catch(err => {console.log(err);})
-    console.log(homeData)
   }
   render(){
-    const { homeData } = this.state
-    console.log( 'this is state', homeData);
+    const { homeData, theme, lang } = this.state
     return (
       <Container fluid>
-        <AppHeader data = {homeData}/>
-        <AppBody />
-        <AppFooter />
+        <AppHeader
+          data = {homeData}
+          theme = {theme}
+          lang = {lang}
+          onLangChange = {this.handleLangChange}
+          onThemeChange = {this.handleThemeChange}
+          />
+        <AppBody
+          theme = {theme}
+          lang = {lang}
+          />
+        <AppFooter
+          theme = {theme}
+          lang = {lang}
+          />
       </Container>
     );
   }
