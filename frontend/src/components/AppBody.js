@@ -1,21 +1,55 @@
 import React, { Component } from 'react'
-import { Grid, Segment, Menu } from 'semantic-ui-react'
+import { Grid } from 'semantic-ui-react'
 import AppMenu from './AppMenu'
 import Sales from './Sales'
+import Financial from './Financial'
+import Products from './Products'
+import Error from './Error'
+import { Route, Switch, Redirect } from 'react-router-dom'
 
 export default class AppBody extends Component {
-  state = { activeItem: 'bio' }
-
-  handleItemClick = (e, { name }) => this.setState({ activeItem: name })
   render() {
-    const { activeItem } = this.state
+    const { theme, lang } = this.props
     return (
       <Grid columns={2}>
-        <Grid.Column floated='left' stretched width={3} style = {{padding:'14px 0px 0px 0px',}}>
-          <AppMenu />
+        <Grid.Column floated='left' stretched width={3} style = {{padding:'20px 0px 20px 0px',}}>
+          <AppMenu theme = {theme} lang = {lang}/>
         </Grid.Column>
-        <Grid.Column stretched width={13}>
-          <Sales />
+        <Grid.Column stretched width={13} style = {{padding:'20px 0px 20px 0px',}}>
+          <Switch>
+            <Route exact path='/'>
+              <Redirect to = '/sales/new' />
+            </Route>
+            <Route path='/sales' render ={() =>{
+                return (
+                  <Sales theme = {theme} lang = {lang}/>
+                  );
+                }
+              }
+              />
+            <Route path='/financial' render ={() =>{
+                  return (
+                    <Financial theme = {theme} lang = {lang}/>
+                    );
+                  }
+                }
+              />
+            <Route path='/products' render ={() =>{
+                return (
+                  <Products theme = {theme} lang = {lang}/>
+                  );
+                }
+              }
+              />
+            <Route path='*' render ={() =>{
+                return (
+                  <Error message = "Sorry This menue Page Doesn't exist" />
+                  );
+                }
+              }
+              />
+          </Switch>
+
         </Grid.Column>
       </Grid>
     )
