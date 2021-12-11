@@ -20,26 +20,22 @@ def setup_db(app, database_name):
     migrate = Migrate(app, db, compare_type=True)
 
 
-'''
-Question
-
-'''
-"""
-
-class Question(db.Model):
-    __tablename__ = 'questions'
+# Users table
+class User(db.Model):
+    __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-    question = db.Column(db.String)
-    answer = db.Column(db.String)
-    category = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
-    difficulty = db.Column(db.Integer)
+    user_name = db.Column(db.String, nullable=False, unique=True)
+    email = db.Column(db.String, nullable=False, unique=True)
+    password_hash = db.Column(db.String(128), nullable=False)
+    products = db.relationship('Products', backref='user_products', lazy=True, cascade="all, delete-orphan")
+    permissions = db.relationship('UserPermissions', backref='user_permissions', lazy=True,
+                                  cascade="all, delete-orphan")
 
-    def __init__(self, question, answer, category, difficulty):
-        self.question = question
-        self.answer = answer
-        self.category = category
-        self.difficulty = difficulty
+    def __init__(self, user_name, email, password):
+        self.user_name = user_name
+        self.email = email
+        self.password_hash = password
 
     def insert(self):
         db.session.add(self)
@@ -55,32 +51,122 @@ class Question(db.Model):
     def format(self):
         return {
             'id': self.id,
-            'question': self.question,
-            'answer': self.answer,
-            'category': self.category,
-            'difficulty': self.difficulty
+            'user_name': self.user_name,
+            'email': self.email,
+            'password_hash': self.password_hash,
+        }
+
+    def format_no_password(self):
+        return {
+            'id': self.id,
+            'user_name': self.user_name,
+            'email': self.email,
         }
 
 
-'''
-Category
-
-'''
-
-
-class Category(db.Model):
-    __tablename__ = 'categories'
+# Permissions table
+class Permissions(db.Model):
+    __tablename__ = 'permissions'
 
     id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String)
-    questions = db.relationship('Question', backref='Q', lazy=True)
+    name = db.Column(db.String, nullable=False, unique=True)
 
-    def __init__(self, type):
-        self.type = type
+    def __init__(self, name):
+        self.name = name
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def update(self):
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
 
     def format(self):
         return {
             'id': self.id,
-            'type': self.type
+            'name': self.name,
         }
-"""
+
+
+# Users permissions table
+class UserPermissions(db.Model):
+    __tablename__ = 'user_permissions'
+
+    id = db.Column(db.Integer, primary_key=True)
+    users_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    permission_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+    def __init__(self, user_id, permission_id):
+        self.user_name = user_id
+        self.permission_id = permission_id
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def update(self):
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def format(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'permission_id': self.permission_id,
+        }
+
+
+# products table
+class Products(db.Model):
+    __tablename__ = 'products'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    code = db.Column(db.String, unique=True, nullable=False)
+    qty = db.Column(db.Integer, default=0)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    mini = db.Column(db.Integer, default=0)
+    maxi = db.Column(db.Integer)
+    sold = db.Column(db.Integer, default=0)
+    image = db.Column(db.String)
+
+    def __init__(self, name, code, qty, created_by, mini, maxi, sold, image):
+        self.name = name
+        self.code = code
+        self.qty = qty if qty == True else 0
+        self.created_by = created_by
+        self.mini = mini if mini == True else 0
+        self.maxi = maxi
+        self.sold = sold if sold == True else 0
+        self.image = image
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def update(self):
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def format(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'code': self.code,
+            'qty': self.qty,
+            'created_by': self.created_by,
+            'mini': self.mini,
+            'maxi': self.maxi,
+            'sold': self.sold,
+            'image': self.image,
+        }
