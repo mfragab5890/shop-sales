@@ -88,18 +88,18 @@ export default class AppHeader extends React.Component {
     const { theme, lang } = this.props
     return (
       <div>
-        <Grid centered columns = {3} textAlign='center' verticalAlign='middle'>
+        <Grid centered columns = {3} textAlign='center' verticalAlign='middle' inverted>
           <Grid.Row centered stretched color={theme}>
             <Grid.Column width={3} >
               <Image circular size = 'mini' src='/logo.png' centered />
             </Grid.Column>
             <Grid.Column width={9}>
-              <Header as='h1' inverted = {theme !== 'basic'? true : false} color={theme !== 'basic'? null : 'black'} textAlign='center' >
+              <Header as='h1' inverted = {theme === 'black'? true : false} color={theme !== 'basic'? null : 'black'} textAlign='center' >
                 Fiori Store
               </Header>
             </Grid.Column>
             <Grid.Column width={4}>
-              <Header as='h4' inverted = {theme !== 'basic'? true : false} color={theme !== 'basic'? null : 'black'} floated = 'right' textAlign='center' >
+              <Header as='h4' inverted = {theme === 'black'? true : false} color={theme !== 'basic'? null : 'black'} floated = 'right' textAlign='center' >
                 <Dropdown  multiple icon='settings'>
                   <Dropdown.Menu>
                     <Dropdown.Divider />

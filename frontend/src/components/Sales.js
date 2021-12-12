@@ -18,6 +18,18 @@ class Sales extends Component {
     }
 
   }
+
+  componentDidMount(){
+    const location = this.props.history.location.pathname
+    if (location.includes('new')) {
+      this.setState({ activeItem: 'New Order' })
+    }
+    if (location.includes('mysales')) {
+      this.setState({ activeItem: 'My Sales' })
+    }
+
+  }
+
   render() {
     const { activeItem } = this.state
     const { theme, lang } = this.props
@@ -34,7 +46,7 @@ class Sales extends Component {
     return (
       <Segment>
 
-        <Menu inverted = {theme !== 'basic'? true : false} color={theme} attached='top' pointing>
+        <Menu inverted = {theme === 'black'? true : false} color={theme} attached='top' pointing>
           <Menu.Item
             name= {myScript.EN.firstTab}
             active={activeItem === myScript.EN.firstTab}

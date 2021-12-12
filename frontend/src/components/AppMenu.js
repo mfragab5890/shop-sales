@@ -19,6 +19,20 @@ class AppMenu extends Component {
 
   }
 
+  componentDidMount(){
+    const location = this.props.history.location.pathname
+    if (location.includes('sales')) {
+      this.setState({ activeItem: 'Sales' })
+    }
+    if (location.includes('financial')) {
+      this.setState({ activeItem: 'Financial' })
+    }
+    if (location.includes('products')) {
+      this.setState({ activeItem: 'Products' })
+    }
+
+  }
+
   render() {
     const { activeItem } = this.state
     const { theme, lang } = this.props

@@ -19,6 +19,17 @@ class Products extends Component {
 
   }
 
+  componentDidMount(){
+    const location = this.props.history.location.pathname
+    if (location.includes('new')) {
+      this.setState({ activeItem: 'New Product' })
+    }
+    if (location.includes('all')) {
+      this.setState({ activeItem: 'All Products' })
+    }
+
+  }
+
   render() {
     const { activeItem } = this.state
     const { theme, lang } = this.props
@@ -34,7 +45,7 @@ class Products extends Component {
     }
     return (
       <Segment>
-        <Menu inverted = {theme !== 'basic'? true : false} color={theme} attached='top' pointing>
+        <Menu inverted = {theme === 'black'? true : false} color={theme !== 'basic' ? theme : null} attached='top' pointing>
           <Menu.Item
             name= {myScript.EN.firstTab}
             active={activeItem === myScript.EN.firstTab}
