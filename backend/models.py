@@ -2,8 +2,11 @@ import os
 from flask_migrate import Migrate
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
 # Declare database name
+from sqlalchemy import func
+
 database_name = "furry-test"
 
 # intiate db with no assigment
@@ -131,6 +134,7 @@ class Products(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
+    description = db.Column(db.String, nullable=False)
     code = db.Column(db.String, unique=True, nullable=False)
     qty = db.Column(db.Integer, default=0)
     sell_price = db.Column(db.Integer, nullable=False)
@@ -141,7 +145,7 @@ class Products(db.Model):
     sold = db.Column(db.Integer, default=0)
     image = db.Column(db.String)
 
-    def __init__(self, name, code, qty, created_by, mini, maxi, sold, image):
+    def __init__(self, name, code, qty, created_by, mini, maxi, sold, image, description, sell_price, buy_price):
         self.name = name
         self.code = code
         self.qty = qty if qty == True else 0
@@ -150,6 +154,9 @@ class Products(db.Model):
         self.maxi = maxi
         self.sold = sold if sold == True else 0
         self.image = image
+        self.description = description
+        self.sell_price = sell_price
+        self.buy_price = buy_price
 
     def insert(self):
         db.session.add(self)
@@ -167,12 +174,15 @@ class Products(db.Model):
             'id': self.id,
             'name': self.name,
             'code': self.code,
+            'sell_price': self.sell_price,
+            'buy_price': self.buy_price
             'qty': self.qty,
             'created_by': self.created_by,
             'mini': self.mini,
             'maxi': self.maxi,
             'sold': self.sold,
             'image': self.image,
+            'description': self.description
         }
 
 
@@ -185,6 +195,7 @@ class Orders(db.Model):
     total_price = db.Column(db.Integer, nullable=False)
     total_cost = db.Column(db.Integer, nullable=False)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_on = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow)
     items = db.relationship('OrderItems', backref='items', lazy=True, cascade="all, delete-orphan")
 
     def __init__(self, qty, created_by, total_price, total_cost):
@@ -247,9 +258,8 @@ class OrderItems(db.Model):
         return {
             'id': self.id,
             'qty': self.qty,
-            'created_by': self.created_by,
-            'mini': self.mini,
-            'maxi': self.maxi,
-            'sold': self.sold,
-            'image': self.image,
+            'total_price': self.total_price,
+            'total_cost': self.total_cost,
+            'order_id': self.order_id,
+            'product_id': self.product_id,
         }
