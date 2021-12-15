@@ -65,6 +65,10 @@ export default class NewProduct extends Component {
             <input placeholder='Product Name' value = {this.state.name} onChange = {this.onNameChange}/>
           </Form.Field>
           <Form.Field>
+            <label>Description</label>
+            <input placeholder='description'  />
+          </Form.Field>
+          <Form.Field>
             <label>Price</label>
             <input placeholder='Product Price' value = {this.state.price} onChange = {this.onPriceChange}/>
           </Form.Field>
