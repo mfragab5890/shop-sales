@@ -10,7 +10,7 @@ class App extends React.Component {
   state = {
     homeData: {},
     theme: 'black',
-    lang: 'EN',
+    lang: 'AR',
   }
 
   handleThemeChange = (theme) => {

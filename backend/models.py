@@ -3,6 +3,7 @@ from flask_migrate import Migrate
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+import base64
 
 # Declare database name
 from sqlalchemy import func
@@ -143,7 +144,7 @@ class Products(db.Model):
     mini = db.Column(db.Integer, default=0)
     maxi = db.Column(db.Integer)
     sold = db.Column(db.Integer, default=0)
-    image = db.Column(db.String)
+    image = db.Column(db.LargeBinary)
 
     def __init__(self, name, code, qty, created_by, mini, maxi, sold, image, description, sell_price, buy_price):
         self.name = name
@@ -153,12 +154,13 @@ class Products(db.Model):
         self.mini = mini if mini == True else 0
         self.maxi = maxi
         self.sold = sold if sold == True else 0
-        self.image = image
         self.description = description
         self.sell_price = sell_price
         self.buy_price = buy_price
+        self.image = base64.b64decode(image)
 
     def insert(self):
+        print(base64.urlsafe_b64encode(self.image))
         db.session.add(self)
         db.session.commit()
 
@@ -170,18 +172,22 @@ class Products(db.Model):
         db.session.commit()
 
     def format(self):
+        if self.image:
+            image = str(base64.b64encode(self.image))
+        else:
+            image = ''
         return {
             'id': self.id,
             'name': self.name,
             'code': self.code,
             'sell_price': self.sell_price,
-            'buy_price': self.buy_price
+            'buy_price': self.buy_price,
             'qty': self.qty,
             'created_by': self.created_by,
             'mini': self.mini,
             'maxi': self.maxi,
             'sold': self.sold,
-            'image': self.image,
+            'image': image,
             'description': self.description
         }
 

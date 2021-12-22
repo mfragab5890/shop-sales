@@ -13,3 +13,20 @@ const headers = {
 export const getHomeData = () =>
   fetch(`${api}/`, { headers })
     .then(res => res.json())
+
+export const addNewProduct = (newProduct) => {
+  return fetch(`${api}/products/new`, {
+    method: 'POST',
+    headers: {
+      ...headers,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      ...newProduct,
+      created_by: 1
+    }),
+  }).then(res => res.json())
+}
+export const getAllProducts = (page=1) =>
+  fetch(`${api}/products/all/${page}`, { headers })
+    .then(res => res.json())

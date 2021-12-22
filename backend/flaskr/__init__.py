@@ -5,8 +5,8 @@ import json
 import dateutil.parser
 import babel
 from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify, abort
-from models import setup_db, database_name, Products
-from operator import attrgetter
+from models import setup_db, database_name, Products, db
+import base64
 
 
 # ----------------------------------------------------------------------------#
@@ -49,7 +49,6 @@ def create_app(test_config=None):
     # Controllers.
     # ----------------------------------------------------------------------------#
 
-    # Get all questions with/without categories and paginated
     @app.route('/', methods=[ 'GET' ])
     def get_home_data():
         return jsonify({
@@ -60,38 +59,62 @@ def create_app(test_config=None):
     # create new product endpoint. this end point should take:
     # name, code, sell_price, buy_price, qty, created_by, mini, maxi, sold, image, description
     # permission: create_product
-    @app.route('/product/new', methods=[ 'POST' ])
+    @app.route('/products/new', methods=[ 'POST' ])
     def create_list():
         body = request.get_json()
-        name, code, sell_price, buy_price, qty, created_by, mini, maxi, sold, image, description \
-            = attrgetter('name', 'code', 'sell_price', 'buy_price', 'qty', 'created_by', 'mini', 'maxi', 'sold', 'image'
-                         , 'description')(body)
-        new_product = Products(name = name, code, code,
-                            sell_price = sell_price,
-                            buy_price = buy_price,
-                            qty = qty,
-                            created_by = created_by,
-                            mini = mini,
-                            maxi = maxi,
-                            sold = sold,
-                            image = image,
-                            description = description
-                            )
+        name = body.get('name', None)
+        code = body.get('barcode', None)
+        sell_price = int(body.get('sellingPrice', None))
+        buy_price = int(body.get('buyingPrice', None))
+        qty = int(body.get('quantity', 0))
+        created_by = int(body.get('created_by', None))
+        mini = int(body.get('minimum', 0))
+        maxi = int(body.get('maximum', (qty + 1)))
+        sold = int(body.get('sold', 0))
+        image = body.get('image', None)
+        description = body.get('description', None)
+
+        new_product = Products(name=name,
+                               code=code,
+                               sell_price=sell_price,
+                               buy_price=buy_price,
+                               qty=qty,
+                               created_by=created_by,
+                               mini=mini,
+                               maxi=maxi,
+                               sold=sold,
+                               image=image,
+                               description=description
+                               )
 
         try:
             new_product.insert()
             # get new list id
             user_product = Products.query \
-                .filter(List.code == code) \
-                .order_by(db.desc(List.id)).first()
+                .filter(Products.code == code) \
+                .order_by(db.desc(Products.id)).first().format()
             return jsonify({
                 'success': True,
                 'message': 'product created successfully',
                 'newProduct': user_product,
             })
         except Exception as e:
-            abort(422)
+            print(e)
+            abort(400)
 
+    @app.route('/products/all/<int:page>', methods=[ 'GET' ])
+    def get_all_products(page):
+        results_per_page = 60
+        if not page:
+            page = 1
+        try:
+            products_query = Products.query.order_by(db.desc(Products.id)).paginate(page, results_per_page,
+                                                                               False).items
+            products = [ product.format() for product in products_query ]
+            return jsonify({'products': products})
+        except Exception as e:
+            print(e)
+            abort(400)
     # ----------------------------------------------------------------------------#
     # Error Handlers.
     # ----------------------------------------------------------------------------#
