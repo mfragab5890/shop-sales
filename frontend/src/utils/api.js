@@ -27,6 +27,33 @@ export const addNewProduct = (newProduct) => {
     }),
   }).then(res => res.json())
 }
+
 export const getAllProducts = (page=1) =>
   fetch(`${api}/products/all/${page}`, { headers })
+    .then(res => res.json())
+
+export const getProductById = (id) =>
+  fetch(`${api}/products/search/${id}`, { headers })
+    .then(res => res.json())
+
+export const addNewOrder = (newOrder) => {
+  return fetch(`${api}/orders/new`, {
+    method: 'POST',
+    headers: {
+      ...headers,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      ...newOrder,
+      created_by: 1
+    }),
+  }).then(res => res.json())
+}
+
+export const getTodayOrders = () =>
+  fetch(`${api}/sales/today`, { headers })
+    .then(res => res.json())
+
+export const getMonthOrders = () =>
+  fetch(`${api}/sales/month`, { headers })
     .then(res => res.json())

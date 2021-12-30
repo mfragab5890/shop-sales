@@ -6,15 +6,9 @@ import ProductView from './ProductView'
 export default class AllProducts extends Component {
   state = {
     page: 1,
-    products: []
   }
 
   componentDidMount = async () => {
-    const products_obj  = await getAllProducts()
-    const products = products_obj.products
-    await this.setState({
-      products: products
-    })
   }
 
   onPageChange = () => {
@@ -27,15 +21,15 @@ export default class AllProducts extends Component {
 
   render() {
 
-    const { theme, lang } = this.props
-    const { page, products } = this.state
+    const { theme, lang, products } = this.props
+    const { page } = this.state
     const myScript = {}
     return (
       <Segment>
         View All Products
         <Card.Group itemsPerRow={3}>
           {
-            products.map((product) => <ProductView key = {product.id} product = {product} theme = {theme}/>)
+            products.map((product) => <ProductView key = {product.id} product = {product} theme = {theme} lang = {lang}/>)
           }
         </Card.Group>
       </Segment>

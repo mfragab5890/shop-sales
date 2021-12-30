@@ -5,7 +5,10 @@ import json
 import dateutil.parser
 import babel
 from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify, abort
-from models import setup_db, database_name, Products, db
+from sqlalchemy import func, extract
+
+from models import setup_db, database_name, Products, db, Orders, OrderItems
+from datetime import datetime, date
 import base64
 
 
@@ -60,7 +63,7 @@ def create_app(test_config=None):
     # name, code, sell_price, buy_price, qty, created_by, mini, maxi, sold, image, description
     # permission: create_product
     @app.route('/products/new', methods=[ 'POST' ])
-    def create_list():
+    def create_product():
         body = request.get_json()
         name = body.get('name', None)
         code = body.get('barcode', None)
@@ -71,7 +74,7 @@ def create_app(test_config=None):
         mini = int(body.get('minimum', 0))
         maxi = int(body.get('maximum', (qty + 1)))
         sold = int(body.get('sold', 0))
-        image = body.get('image', None)
+        image = body.get('image', '')
         description = body.get('description', None)
 
         new_product = Products(name=name,
@@ -109,9 +112,114 @@ def create_app(test_config=None):
             page = 1
         try:
             products_query = Products.query.order_by(db.desc(Products.id)).paginate(page, results_per_page,
-                                                                               False).items
+                                                                                    False).items
             products = [ product.format() for product in products_query ]
             return jsonify({'products': products})
+        except Exception as e:
+            print(e)
+            abort(400)
+
+    @app.route('/products/search/<int:product_id>', methods=[ 'GET' ])
+    def search_products(product_id):
+        try:
+            data = Products.query.filter(Products.id == product_id).first()
+            if data is not None:
+                product = data.format()
+                return jsonify(product)
+            else:
+                return jsonify({
+                    "success": False,
+                    "error": 400,
+                    "message": "This Product Doesn't Exist In Your DataBase"
+                })
+        except Exception as e:
+            print(e)
+            abort(400)
+
+    # create new order endpoint. this end point should take:
+    # order items, user, total
+    # permission: create_order
+    @app.route('/orders/new', methods=[ 'POST' ])
+    def create_order():
+        body = request.get_json()
+        cart_items = body.get('cartItems', [ ])
+        total_price = int(body.get('total', None))
+        total_cost = int(body.get('totalCost', None))
+        qty = int(body.get('totalQuantity', None))
+        created_by = int(body.get('created_by', None))
+
+        new_order = Orders(
+            qty=qty,
+            total_price=total_price,
+            total_cost=total_cost,
+            created_by=created_by,
+        )
+
+        try:
+            new_order.insert()
+            # get new list id
+            user_order = Orders.query.order_by(db.desc(Orders.id)).first()
+            for item in cart_items:
+                print(item)
+                qty = int(item[ 'quantity' ])
+                total_price = int(item[ 'total' ])
+                total_cost = int(item[ 'totalCost' ])
+                order_id = int(user_order.id)
+                product_id = int(item[ 'id' ])
+
+                new_order_items = OrderItems(
+                    qty=qty,
+                    total_price=total_price,
+                    total_cost=total_cost,
+                    order_id=order_id,
+                    product_id=product_id
+                )
+                user_product = Products.query.get(product_id)
+                if isinstance(user_product.sold, int):
+                    user_product.sold += qty
+                else:
+                    user_product.sold = qty
+                try:
+                    new_order_items.insert()
+                    user_product.update()
+                except Exception as e:
+                    print(e)
+                    abort(400)
+
+            return jsonify({
+                'success': True,
+                'message': 'Order Added successfully'
+            })
+        except Exception as e:
+            print(e)
+            abort(400)
+
+    @app.route('/sales/month', methods=[ 'GET' ])
+    def get_month_orders():
+        try:
+            orders_query = Orders.query.filter(
+                extract('year', Orders.created_on) == datetime.utcnow().year
+            ).filter(
+                extract('month', Orders.created_on) == datetime.utcnow().month
+            ).order_by(db.desc(Orders.id)).all()
+            orders = [ order.format() for order in orders_query ]
+            return jsonify({'orders': orders})
+        except Exception as e:
+            print(e)
+            abort(400)
+
+    @app.route('/sales/today', methods=[ 'GET' ])
+    def get_today_orders():
+        try:
+            orders_query = Orders.query.filter(
+                extract('year', Orders.created_on) == datetime.utcnow().year
+            ).filter(
+                extract('month', Orders.created_on) == datetime.utcnow().month
+            ).filter(
+                extract('day', Orders.created_on) == datetime.utcnow().day
+            ).order_by(db.desc(Orders.id)).all()
+            orders = [ order.format() for order in orders_query ]
+            return jsonify({'orders': orders})
         except Exception as e:
             print(e)
             abort(400)

@@ -56,6 +56,12 @@ const themeOptions = [
     value: 'green',
     label: { color: 'green', empty: true, circular: true },
   },
+  {
+    key: 'teal',
+    text: 'teal',
+    value: 'teal',
+    label: { color: 'teal', empty: true, circular: true },
+  },
 ]
 
 const langOptions = [

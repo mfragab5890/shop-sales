@@ -1,11 +1,57 @@
 import React, { Component } from 'react'
-import { Segment, Button, Form, Header, Card, Image } from 'semantic-ui-react'
+import { Segment, Button, Form, Header, Card, Image, Message } from 'semantic-ui-react'
 import bwipjs from 'bwip-js'
 import { addNewProduct } from '../utils/api'
 import ReactToPrint from 'react-to-print';
 
 export default class NewProduct extends Component {
   state = {
+    myScript: {
+      EN: {
+        name: 'Name',
+        description: 'Description',
+        buyingPrice: 'Buying Price',
+        sellingPrice: 'Selling Price',
+        quantity: 'Quantity',
+        barcode: 'Barcode Text',
+        minimum: 'Minimum',
+        maximum: 'Maximum',
+        image: 'Image',
+        btns:{
+          submit: 'Submit',
+          print: 'Print Barcode',
+        },
+        error: {
+          name : "Product name can't be empty",
+          description : "Product description can't be empty",
+          sellingPrice: "Product selling price can't be empty",
+          buyingPrice : "Product buying price can't be empty",
+          quantity : "Product quantity can't be empty"
+        }
+      },
+      AR: {
+        name: 'اسم المنتج',
+        description: 'الوصف',
+        buyingPrice: 'سعر الشراء',
+        sellingPrice: 'سعر البيع',
+        quantity: 'الكمية',
+        barcode: 'الكود',
+        minimum: 'الحد الادنى',
+        maximum: 'الحد الاقصى',
+        image: 'صورة المنتج',
+        btns:{
+          submit: 'اضافة',
+          print: 'طباعة الباركود',
+        },
+        error: {
+          name : "يجب ادخال اسم المنتج",
+          description : "يجب ادخال وصف للمنتج",
+          sellingPrice: "يجب ادخال سعر بيع المنتج",
+          buyingPrice : "يجب ادخال سعر شراء المنتج",
+          quantity : "يجب ادخال كمية المنتج",
+        }
+      }
+    },
     name: '',
     description: '',
     buyingPrice: '',
@@ -17,20 +63,15 @@ export default class NewProduct extends Component {
     image: '',
     newImage : '',
     barcodeImage: '',
+    product: null,
+    error: ''
   }
 
   onNameChange = async (e) => {
     const value = e.target.value
-    const { sellingPrice } = this.state
-    const newBarcode = value + '-P' + sellingPrice
     await this.setState({
       name : value,
-      barcode : newBarcode,
     })
-    if (sellingPrice !== '' && value !== '') {
-      const { barcode } = this.state
-      await this.handleBarcodeGenerator(barcode)
-    }
   }
   onDesChange = (e) => {
     const value = e.target.value
@@ -48,7 +89,7 @@ export default class NewProduct extends Component {
   onQuantityChange = (e) => {
     const value = e.target.value
     const { maximum } = this.state
-    if (maximum === '') {
+    if (maximum === '' || maximum < value) {
       this.setState({
         quantity : value,
         maximum : value,
@@ -77,54 +118,87 @@ export default class NewProduct extends Component {
   }
 
   onImageChange = async (e) => {
-    const value = e.target.files[0]
+    const { files } = e.target
+    const file = files[0]
     let reader = new FileReader();
     let image = ''
     reader.onload = (e) => {
       image = e.target.result
-      this.setState({image: image})
+      this.setState({
+        image: image,
+      })
     }
-    reader.readAsDataURL(value)
+    reader.readAsDataURL(file)
   }
 
 
   onSellPriceChange = async (e) => {
     const value = e.target.value
-    const { name } = this.state
-    const newBarcode = name + '-P' + value
     await this.setState({
       sellingPrice : value,
-      barcode : newBarcode,
     })
-    if (name !== '' && value !== '') {
-      const { barcode } = this.state
-      await this.handleBarcodeGenerator('31')
-    }
-
   }
 
   handleBarcodeGenerator = async (value) => {
+    const newValue = value.toString()
     try {
       // The return value is the canvas element
       let canvas = await bwipjs.toCanvas('mycanvas', {
                 bcid:        'code128',       // Barcode type
-                text:        value,    // Text to encode
+                text:        newValue,    // Text to encode
                 scale:       2,               // 2x scaling factor
                 height:      10,              // Bar height, in millimeters
                 includetext: true,            // Show human-readable text
                 textxalign:  'center',        // Always good to set this
             });
+      await this.setState({
+        barcodeImage : this.canavasRef.toDataURL()
+      })
     } catch (e) {
         // `e` may be a string or Error object
     }
-    await this.setState({
-      barcodeImage : this.canavasRef.toDataURL()
-    })
+
   }
 
   handleAddProduct = (e) => {
     e.preventDefault()
-    const { name, description, buyingPrice, sellingPrice, quantity, barcode, minimum, maximum, image } = this.state
+    const { name, description, buyingPrice, sellingPrice, quantity, minimum, maximum, image } = this.state
+    if (name === '') {
+      const { lang } = this.props
+      const error = this.state.myScript[lang].error.name
+      return this.setState({
+        error: error
+      });
+    }
+    if (description === '') {
+      const { lang } = this.props
+      const error = this.state.myScript[lang].error.description
+      return this.setState({
+        error: error
+      });
+    }
+    if (buyingPrice === '') {
+      const { lang } = this.props
+      const error = this.state.myScript[lang].error.buyingPrice
+      return this.setState({
+        error: error
+      });
+    }
+    if (sellingPrice === '') {
+      const { lang } = this.props
+      const error = this.state.myScript[lang].error.sellingPrice
+      return this.setState({
+        error: error
+      });
+    }
+    if (quantity === '') {
+      const { lang } = this.props
+      const error = this.state.myScript[lang].error.quantity
+      return this.setState({
+        error: error
+      });
+    }
+    const barcode = name + '-p' + sellingPrice
     const newProduct = {
       name,
       description,
@@ -138,6 +212,11 @@ export default class NewProduct extends Component {
     }
 
     addNewProduct(newProduct).then(async (value) => {
+      await this.setState({
+        barcode: value.newProduct.id,
+        product: value.newProduct,
+      })
+      await this.handleBarcodeGenerator(value.newProduct.id)
       let newImage = value.newProduct.image
       newImage = await newImage.replace("b'", "data:image/jpg;base64,")
       newImage = await newImage.slice(0, -1)
@@ -157,46 +236,20 @@ export default class NewProduct extends Component {
         minimum: 0,
         maximum: '',
         image: '',
-        barcodeImage: '',
       })
     })
   }
 
-  render() {
+  componentDidMount=async () => {
+    this.handleBarcodeGenerator(31)
+    await this.setState({
+      barcodeImage : this.canavasRef.toDataURL()
+    })
+  }
 
+  render() {
+    const { product, myScript, error } = this.state
     const { theme, lang } = this.props
-    const myScript = {
-      EN: {
-        name: 'Name',
-        description: 'Description',
-        buyingPrice: 'Buying Price',
-        sellingPrice: 'Selling Price',
-        quantity: 'Quantity',
-        barcode: 'Barcode Text',
-        minimum: 'Minimum',
-        maximum: 'Maximum',
-        image: 'Image',
-        btns:{
-          submit: 'Submit',
-          print: 'Print Barcode',
-        },
-      },
-      AR: {
-        name: 'اسم المنتج',
-        description: 'الوصف',
-        buyingPrice: 'سعر الشراء',
-        sellingPrice: 'سعر البيع',
-        quantity: 'الكمية',
-        barcode: 'الكود',
-        minimum: 'الحد الادنى',
-        maximum: 'الحد الاقصى',
-        image: 'صورة المنتج',
-        btns:{
-          submit: 'اضافة',
-          print: 'طباعة الباركود',
-        },
-      }
-    }
     const {sellingPrice, name, barcodeImage} = this.state
 
     return (
@@ -205,7 +258,7 @@ export default class NewProduct extends Component {
           {lang === 'EN'? 'Add New Product' : 'اضافة منتج جديد'}
         </Header>
 
-        <Form>
+        <Form error = {error ? true : false}>
           <Form.Field
             required
             control='input'
@@ -278,40 +331,69 @@ export default class NewProduct extends Component {
             label = {myScript[lang].image}
             placeholder= 'Product Image'
             onChange = {this.onImageChange}
-            accept="image/*"
+            accept = "image/*"
           />
-        {
-          this.state.image !== ''
-          ?(<Image src={this.state.image} size='small' centered />)
-        :null
-        }
-          <Form.Field required>
+          <Form.Field>
+            {
+              this.state.image !== ''
+              ?(<Image src={this.state.image} size='small' centered />)
+              :null
+            }
+          </Form.Field>
+          <Form.Field>
             <label>{myScript[lang].barcode}</label>
             <input placeholder='Barcode Text' disabled value = {this.state.barcode}/>
           </Form.Field>
-          <Form.Field>
-            {
-              sellingPrice !== '' && name !== ''
-              ?  <Card centered>
-                  <canvas style={{padding:'3px', margin: '3px', display: 'none'}} id="mycanvas" ref={el => (this.canavasRef = el)} />
-                  <img src={barcodeImage} className="ui centered spaced medium image" ref={el => (this.barcodeRef = el)}/>
-                  <ReactToPrint
-                    trigger={() => {
-                      return <Button color = {theme} attached='bottom'>{myScript[lang].btns.print}</Button>;
-                    }}
-                    content={() => this.barcodeRef}
-                  />
-                </Card>
-              : null
-            }
-          </Form.Field>
-          <Button attached='bottom' type='submit' onClick = {this.handleAddProduct}>{myScript[lang].btns.submit}</Button>
+          <Form.Button
+            content={myScript[lang].btns.submit}
+            attached='bottom'
+            onClick = {this.handleAddProduct}
+          />
+            <Message
+              error
+              header='Action Forbidden'
+              content={error}
+            />
         </Form>
+        <canvas id="mycanvas" style={{padding:'3px', margin: '3px', display: 'none'}}  ref={el => (this.canavasRef = el)} />
 
         {
-          this.state.newImage !== ''
-          ?(<Image src={this.state.newImage} size='medium' centered />)
-        :null
+          product &&
+          <Segment>
+            <Card color={theme} centered>
+              <img src={barcodeImage} className="ui centered spaced image" ref={el => (this.barcodeRef = el)}/>
+              <ReactToPrint
+                trigger={() => {
+                  return <Button color = {theme} attached='bottom'>{myScript[lang].btns.print}</Button>;
+                }}
+                content={() => this.barcodeRef}
+              />
+            </Card>
+            <Card color={theme} centered fluid>
+              <Card.Content>
+                <Image
+                  floated='right'
+                  size='mini'
+                  src={this.state.newImage}
+                />
+                <Card.Header>{product.name}</Card.Header>
+                <Card.Meta>{product.id}</Card.Meta>
+                <Card.Description>
+                  {product.description}
+                </Card.Description>
+              </Card.Content>
+              <Card.Content extra>
+                <div className='ui two buttons'>
+                  <Button basic color='green'>
+                    Edit
+                  </Button>
+                  <Button basic color='red'>
+                    Delete
+                  </Button>
+                </div>
+              </Card.Content>
+            </Card>
+          </Segment>
         }
       </Segment>
     )

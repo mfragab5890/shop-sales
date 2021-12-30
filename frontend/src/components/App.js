@@ -1,5 +1,5 @@
 import React from 'react'
-import { getHomeData } from '../utils/api'
+import { getHomeData, getAllProducts } from '../utils/api'
 import 'semantic-ui-css/semantic.min.css'
 import { Container } from 'semantic-ui-react'
 import AppHeader from './AppHeader'
@@ -9,6 +9,7 @@ import AppFooter from './AppFooter'
 class App extends React.Component {
   state = {
     homeData: {},
+    products: [],
     theme: 'black',
     lang: 'AR',
   }
@@ -24,6 +25,7 @@ class App extends React.Component {
       'yellow',
       'pink',
       'green',
+      'teal',
       ]
     if (colors.includes(theme)) {
       this.setState({
@@ -40,7 +42,7 @@ class App extends React.Component {
     }
 
   }
-  componentDidMount(){
+  componentDidMount = async () => {
     let homeData = null
     getHomeData()
     .then(data => {
@@ -50,9 +52,14 @@ class App extends React.Component {
       });
     })
     .catch(err => {console.log(err);})
+    const products_obj  = await getAllProducts()
+    const products = products_obj.products
+    await this.setState({
+      products: products
+    })
   }
   render(){
-    const { homeData, theme, lang } = this.state
+    const { homeData, theme, lang, products } = this.state
     return (
       <Container fluid>
         <AppHeader
@@ -65,6 +72,7 @@ class App extends React.Component {
         <AppBody
           theme = {theme}
           lang = {lang}
+          products = { products }
           />
         <AppFooter
           theme = {theme}

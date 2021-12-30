@@ -149,11 +149,11 @@ class Products(db.Model):
     def __init__(self, name, code, qty, created_by, mini, maxi, sold, image, description, sell_price, buy_price):
         self.name = name
         self.code = code
-        self.qty = qty if qty == True else 0
+        self.qty = qty
         self.created_by = created_by
-        self.mini = mini if mini == True else 0
+        self.mini = mini
         self.maxi = maxi
-        self.sold = sold if sold == True else 0
+        self.sold = sold
         self.description = description
         self.sell_price = sell_price
         self.buy_price = buy_price
@@ -202,7 +202,7 @@ class Orders(db.Model):
     total_cost = db.Column(db.Integer, nullable=False)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_on = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow)
-    items = db.relationship('OrderItems', backref='items', lazy=True, cascade="all, delete-orphan")
+    items = db.relationship('OrderItems', backref='order_items', lazy=True, cascade="all, delete-orphan")
 
     def __init__(self, qty, created_by, total_price, total_cost):
         self.qty = qty
@@ -228,6 +228,8 @@ class Orders(db.Model):
             'created_by': self.created_by,
             'total_price': self.total_price,
             'total_cost': self.total_cost,
+            'created_on': self.created_on,
+            'items' : [item.format() for item in self.items]
         }
 
 

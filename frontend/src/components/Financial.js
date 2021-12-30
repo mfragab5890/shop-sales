@@ -49,14 +49,14 @@ class Financial extends Component {
         <Menu inverted = {theme === 'black'? true : false} color={theme} attached='top' pointing>
           <Menu.Item
             name= {myScript.EN.firstTab}
-            active={activeItem === myScript[lang].firstTab}
+            active= {activeItem === myScript.EN.firstTab}
             onClick={this.handleItemClick}
           >
             {myScript[lang].firstTab}
           </Menu.Item>
           <Menu.Item
             name= {myScript.EN.secondTab}
-            active={activeItem === myScript[lang].secondTab}
+            active= {activeItem === myScript.EN.secondTab}
             onClick={this.handleItemClick}
           >
             {myScript[lang].secondTab}
