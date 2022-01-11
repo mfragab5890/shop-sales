@@ -5,8 +5,8 @@ import json
 import dateutil.parser
 import babel
 from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify, abort
-from sqlalchemy import func, extract
-
+from sqlalchemy import func, extract, or_
+from math import ceil
 from models import setup_db, database_name, Products, db, Orders, OrderItems
 from datetime import datetime, date
 import base64
@@ -60,13 +60,12 @@ def create_app(test_config=None):
         })
 
     # create new product endpoint. this end point should take:
-    # name, code, sell_price, buy_price, qty, created_by, mini, maxi, sold, image, description
+    # name, sell_price, buy_price, qty, created_by, mini, maxi, sold, image, description
     # permission: create_product
     @app.route('/products/new', methods=[ 'POST' ])
     def create_product():
         body = request.get_json()
         name = body.get('name', None)
-        code = body.get('barcode', None)
         sell_price = int(body.get('sellingPrice', None))
         buy_price = int(body.get('buyingPrice', None))
         qty = int(body.get('quantity', 0))
@@ -78,7 +77,6 @@ def create_app(test_config=None):
         description = body.get('description', None)
 
         new_product = Products(name=name,
-                               code=code,
                                sell_price=sell_price,
                                buy_price=buy_price,
                                qty=qty,
@@ -94,7 +92,7 @@ def create_app(test_config=None):
             new_product.insert()
             # get new list id
             user_product = Products.query \
-                .filter(Products.code == code) \
+                .filter(Products.name == name) \
                 .order_by(db.desc(Products.id)).first().format()
             return jsonify({
                 'success': True,
@@ -107,20 +105,21 @@ def create_app(test_config=None):
 
     @app.route('/products/all/<int:page>', methods=[ 'GET' ])
     def get_all_products(page):
-        results_per_page = 60
+        results_per_page = 33
         if not page:
             page = 1
         try:
             products_query = Products.query.order_by(db.desc(Products.id)).paginate(page, results_per_page,
                                                                                     False).items
+            pages = round(ceil(Products.query.count() / results_per_page))
             products = [ product.format() for product in products_query ]
-            return jsonify({'products': products})
+            return jsonify({'products': products, 'pages': pages})
         except Exception as e:
             print(e)
             abort(400)
 
-    @app.route('/products/search/<int:product_id>', methods=[ 'GET' ])
-    def search_products(product_id):
+    @app.route('/products/search/id/<int:product_id>', methods=[ 'GET' ])
+    def search_products_id(product_id):
         try:
             data = Products.query.filter(Products.id == product_id).first()
             if data is not None:
@@ -135,6 +134,47 @@ def create_app(test_config=None):
         except Exception as e:
             print(e)
             abort(400)
+
+    @app.route('/products/search/<string:search_term>', methods=[ 'GET' ])
+    def search_products_string(search_term):
+        try:
+            data = Products.query.filter(or_(Products.name.ilike('%' + search_term + '%'),
+                                             Products.description.ilike('%' + search_term + '%'))).all()
+            if data is not None:
+                products = [ product.format() for product in data ]
+                return jsonify({
+                    'products': products,
+                })
+            else:
+                return jsonify({
+                    "success": False,
+                    "error": 400,
+                    "message": "This Product Doesn't Exist In Your DataBase"
+                })
+        except Exception as e:
+            print(e)
+            abort(400)
+        # delete product endpoint.
+        # permission: delete_product
+
+    @app.route('/products/delete/<int:product_id>', methods=[ 'DELETE' ])
+    def delete_product(product_id):
+        # check if user logged in and has permission
+        if product_id is None:
+            abort(400, 'No Product ID Entered')
+        else:
+            user_product = Products.query.get(product_id)
+            print(user_product)
+            try:
+                user_product.delete()
+
+                return jsonify({
+                    'success': True,
+                    'message': 'product deleted successfully'
+                })
+            except Exception as e:
+                print(e)
+                abort(422)
 
     # create new order endpoint. this end point should take:
     # order items, user, total
@@ -179,6 +219,11 @@ def create_app(test_config=None):
                     user_product.sold += qty
                 else:
                     user_product.sold = qty
+
+                if isinstance(user_product.qty, int):
+                    user_product.qty -= qty
+                else:
+                    user_product.qty = 0
                 try:
                     new_order_items.insert()
                     user_product.update()
@@ -194,6 +239,7 @@ def create_app(test_config=None):
             print(e)
             abort(400)
 
+    # Get current month sales
     @app.route('/sales/month', methods=[ 'GET' ])
     def get_month_orders():
         try:
@@ -208,6 +254,24 @@ def create_app(test_config=None):
             print(e)
             abort(400)
 
+    # Get custom period sales
+    @app.route('/sales/period', methods=[ 'POST' ])
+    def get_period_orders():
+        try:
+            body = request.get_json()
+            period_from = body.get('periodFrom', 0)
+            period_to = body.get('periodTo', 0)
+            orders_query = Orders.query.filter(
+                Orders.created_on >= period_from,
+                Orders.created_on <= period_to,
+                ).order_by(db.desc(Orders.id)).all()
+            orders = [ order.format() for order in orders_query ]
+            return jsonify({'orders': orders})
+        except Exception as e:
+            print(e)
+            abort(400)
+
+    # Get today sales
     @app.route('/sales/today', methods=[ 'GET' ])
     def get_today_orders():
         try:
@@ -223,6 +287,26 @@ def create_app(test_config=None):
         except Exception as e:
             print(e)
             abort(400)
+
+    # delete orders endpoint.
+    # permission: delete_order
+    @app.route('/orders/delete/<int:order_id>', methods=[ 'DELETE' ])
+    def delete_order(order_id):
+        # check if user logged in and has permission
+        if order_id is None:
+            abort(400, 'No Order ID Entered')
+        else:
+            user_order = Orders.query.get(order_id)
+            try:
+                user_order.delete()
+
+                return jsonify({
+                    'success': True,
+                    'message': 'order deleted successfully'
+                })
+            except Exception as e:
+                abort(422)
+
     # ----------------------------------------------------------------------------#
     # Error Handlers.
     # ----------------------------------------------------------------------------#
