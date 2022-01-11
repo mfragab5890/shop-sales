@@ -1,18 +1,22 @@
 import React, { Component } from 'react'
-import { Grid, Image, Header, Table, Input, Button } from 'semantic-ui-react'
-import { getProductById, addNewOrder } from '../utils/api'
+import { Grid, Image, Input, Button, List, Message } from 'semantic-ui-react'
+import { getProductById, addNewOrder, searchProducts } from '../utils/api'
 import ReactToPrint from 'react-to-print';
 import Cart from './Cart'
 
 export default class NewOrder extends Component {
   state = {
     barcode : '',
+    searchTerm : '',
+    typing : 0,
+    loading : false,
     cartItems : [],
     cartIds : [],
     total : 0,
     totalCost : 0,
     totalQuantity: 0,
-    results : []
+    results : [],
+    noResults: false,
   }
 
   onBarcodeChange = (e) => {
@@ -20,8 +24,47 @@ export default class NewOrder extends Component {
     this.setState({
       barcode: value
     })
-
   }
+
+  onSearchTermChange = (e) => {
+    const { value } = e.target
+    this.setState((prevState) => {
+      return {
+        searchTerm: value,
+        loading: true,
+        typing: clearTimeout(prevState.typing)
+      };
+    })
+    this.setState({
+      typing: setTimeout(() => this.handleProductsSearch(value), 500)
+    })
+  }
+
+  handleProductsSearch = async (searchTerm) => {
+    if (searchTerm === '') {
+      return await this.setState({
+        loading: false,
+        results: [],
+        noResults: false,
+      });
+    }
+    const results = await searchProducts(searchTerm)
+    console.log(results.products.length);
+    if (results.products.length === 0) {
+      return  this.setState({
+        loading: false,
+        results: [],
+        noResults: true,
+      })
+    }
+    await this.setState({
+      loading: false,
+      results: results.products,
+      noResults: false,
+    })
+  }
+
+
 
   formatProduct = (product, quantity = 1) => {
     const total = quantity * product.sell_price
@@ -99,6 +142,38 @@ export default class NewOrder extends Component {
     }
   }
 
+  handleResultAddToCart = async (result) => {
+    const { cartIds } = this.state
+    const id = Number(result.id)
+    if(!cartIds.includes(id)){
+        const product = this.formatProduct(result)
+        await this.setState((prevState) => {
+        return {
+          ...prevState,
+          cartItems : prevState.cartItems.concat([product]),
+          cartIds : prevState.cartIds.concat([product.id]),
+          };
+        })
+      await this.updateTotal()
+      await this.setState({
+        barcode: '',
+      })
+    }
+    else {
+      let { cartItems } = this.state
+      const itemIndex = cartItems.findIndex((item => item.id === id))
+      cartItems[itemIndex].quantity += 1
+      cartItems[itemIndex].total += cartItems[itemIndex].price
+      cartItems[itemIndex].totalCost += cartItems[itemIndex].cost
+      await this.setState({
+        cartItems : cartItems,
+        barcode : ''
+      })
+      await this.updateTotal()
+
+    }
+  }
+
   handleEditQuantity = async (quantity, id) => {
     let { cartItems, cartIds } = this.state
     if (quantity === 0) {
@@ -139,18 +214,20 @@ export default class NewOrder extends Component {
   render() {
 
     const { theme, lang } = this.props
-    const { barcode, cartItems, total, totalQuantity } = this.state
+    const { barcode, searchTerm, cartItems, total, totalQuantity, loading, results, noResults } = this.state
     const myScript = {
       EN:{
         item: 'Item',
         price: 'Price',
         quantity: 'Qty',
         total: 'Total',
+        description: 'Description',
         search:{
           barcode: 'Barcode',
           barcodePlaceholder: 'Search By Barcode',
           name: 'Name',
-          namePlaceholder: 'Search By Name Or Description'
+          namePlaceholder: 'Search By Name Or Description',
+          noResults: 'Sorry There Are No Products Name or Description Match Or Contain your Search Term',
         },
         btns:{
           submit: 'Submit',
@@ -162,11 +239,13 @@ export default class NewOrder extends Component {
         price: 'السعر',
         quantity: 'الكمية',
         total: 'الاجمالي',
+        description: 'الوصف',
         search:{
           barcode: 'باركود',
           barcodePlaceholder: 'البحث بالباركود',
           name: 'الاسم',
-          namePlaceholder: 'البحث بالاسم'
+          namePlaceholder: 'البحث بالاسم',
+          noResults: 'ناسف لا يوجداسم او وصف لمنتجات تطابق او تحتوي على كلمة البحث هذه',
         },
         btns:{
           print: 'طباعة الايصال',
@@ -176,7 +255,7 @@ export default class NewOrder extends Component {
     return (
       <Grid celled='internally'>
         <Grid.Row>
-          <Grid.Column width={9}>
+          <Grid.Column width={8}>
             <Input
               icon = 'search'
               label = {myScript[lang].search.barcode}
@@ -188,21 +267,20 @@ export default class NewOrder extends Component {
               type = {'number'}
             />
           </Grid.Column>
-          <Grid.Column width={7}>
+          <Grid.Column width={8}>
             <Input
               icon='search'
+              loading = {loading}
               label={myScript[lang].search.name}
+              value = {searchTerm}
+              onChange = {this.onSearchTermChange}
               placeholder= {myScript[lang].search.namePlaceholder}
               floated = {'right'}
             />
           </Grid.Column>
         </Grid.Row>
         <Grid.Row>
-          <Grid.Column width={9}>
-
-            <Image src='https://react.semantic-ui.com/images/wireframe/image.png' />
-          </Grid.Column>
-          <Grid.Column width={7}>
+          <Grid.Column width={8}>
             <Cart
               lang = {lang}
               theme = {theme}
@@ -221,6 +299,35 @@ export default class NewOrder extends Component {
               }}
               content={() => this.cartRef }
             />
+          </Grid.Column>
+          <Grid.Column width={8}>
+            {
+              !noResults
+              ?<List>
+                  {
+                    results.map((product) => {
+                      const image = product.image.replace("b'", "data:image/jpg;base64,")
+                                    .slice(0, -1)
+                      return (
+                          <List.Item key = {product.id} style={{ cursor: 'cell' }} onClick = {() => this.handleResultAddToCart(product)}>
+                            <Image avatar src={image.length > 0? image : '/logo.png'} />
+                            <List.Content>
+                              <List.Header as='h3'>{product.id} | {product.name}</List.Header>
+                              <List.Description>
+                                {myScript[lang].description} : {product.description} | {myScript[lang].price} : {product.sell_price}
+                              </List.Description>
+                            </List.Content>
+                          </List.Item>
+                        );
+                    })
+                  }
+                </List>
+              :<Message
+                success = {false}
+                content= {myScript[lang].search.noResults}
+              />
+            }
+
           </Grid.Column>
         </Grid.Row>
       </Grid>
