@@ -49,7 +49,6 @@ export default class NewOrder extends Component {
       });
     }
     const results = await searchProducts(searchTerm)
-    console.log(results.products.length);
     if (results.products.length === 0) {
       return  this.setState({
         loading: false,
