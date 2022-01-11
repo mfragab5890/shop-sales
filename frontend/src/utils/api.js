@@ -33,8 +33,21 @@ export const getAllProducts = (page=1) =>
     .then(res => res.json())
 
 export const getProductById = (id) =>
-  fetch(`${api}/products/search/${id}`, { headers })
+  fetch(`${api}/products/search/id/${id}`, { headers })
     .then(res => res.json())
+
+export const searchProducts = (searchTerm) =>
+  fetch(`${api}/products/search/${searchTerm}`, { headers })
+    .then(res => res.json())
+
+export const deleteProduct = (productId) =>
+fetch(`${api}/products/delete/${productId}`, {
+    method: 'DELETE',
+    headers: {
+      ...headers,
+      'Content-Type': 'application/json',
+      },
+    }).then(res => res.json())
 
 export const addNewOrder = (newOrder) => {
   return fetch(`${api}/orders/new`, {
@@ -57,3 +70,25 @@ export const getTodayOrders = () =>
 export const getMonthOrders = () =>
   fetch(`${api}/sales/month`, { headers })
     .then(res => res.json())
+
+export const deleteOrder = (orderId) =>
+  fetch(`${api}/orders/delete/${orderId}`, {
+    method: 'DELETE',
+    headers: {
+      ...headers,
+      'Content-Type': 'application/json',
+    },
+  }).then(res => res.json())
+
+export const getPeriodOrders = (periodFrom, periodTo) =>
+  fetch(`${api}/sales/period`, {
+    method: 'POST',
+    headers: {
+      ...headers,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      periodFrom,
+      periodTo,
+    }),
+  }).then(res => res.json())
