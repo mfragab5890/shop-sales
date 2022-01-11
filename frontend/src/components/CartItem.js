@@ -51,7 +51,7 @@ export default class CartItems extends Component {
            {item.name}
           </Header>
         </Table.Cell>
-          <Table.Cell singleLine onClick = {this.showQantityInput}>
+          <Table.HeaderCell singleLine onClick = {this.showQantityInput}>
             {
               editQantity
               ? <Input
@@ -62,9 +62,9 @@ export default class CartItems extends Component {
               />
               : item.quantity
             }
-          </Table.Cell>
-          <Table.Cell singleLine>{item.price}</Table.Cell>
-          <Table.Cell singleLine>{item.total}</Table.Cell>
+          </Table.HeaderCell>
+          <Table.HeaderCell singleLine>{item.price}</Table.HeaderCell>
+          <Table.HeaderCell singleLine>{item.total}</Table.HeaderCell>
       </Table.Row>
     )
   }
