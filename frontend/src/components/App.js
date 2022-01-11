@@ -10,6 +10,7 @@ class App extends React.Component {
   state = {
     homeData: {},
     products: [],
+    pages:0,
     theme: 'black',
     lang: 'AR',
   }
@@ -54,12 +55,14 @@ class App extends React.Component {
     .catch(err => {console.log(err);})
     const products_obj  = await getAllProducts()
     const products = products_obj.products
+    const pages = products_obj.pages
     await this.setState({
-      products: products
+      products: products,
+      pages: pages
     })
   }
   render(){
-    const { homeData, theme, lang, products } = this.state
+    const { homeData, theme, lang, products, pages } = this.state
     return (
       <Container fluid>
         <AppHeader
@@ -73,6 +76,7 @@ class App extends React.Component {
           theme = {theme}
           lang = {lang}
           products = { products }
+          pages = {pages}
           />
         <AppFooter
           theme = {theme}
