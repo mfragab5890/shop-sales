@@ -4,15 +4,63 @@ import ReceiptItems from './ReceiptItems'
 
 export default class ReceiptView extends Component {
   state = {
+    cartItems: [],
+    total: 0,
+    totalQuantity: 0,
   }
 
   componentDidMount(){
+    const { total, totalQuantity, cartItems } = this.props
+    this.setState({
+      cartItems: cartItems,
+      total: total,
+      totalQuantity: totalQuantity
+    })
+  }
+
+  updateTotal = () => {
+    const { cartItems } = this.state
+    let total = 0
+    let totalCost = 0
+    let totalQuantity = 0
+    cartItems.map((item) => {
+      total += item.total
+      totalCost += item.totalCost
+      totalQuantity += item.quantity
+      return item;
+    })
+    this.setState({
+      total : total,
+      totalCost : totalCost,
+      totalQuantity : totalQuantity,
+    })
+  }
+
+  handleQuantityChange = (quantity, itemId) => {
+    let { cartItems } = this.state
+    if (quantity === 0) {
+      cartItems = cartItems.filter((item) => item.id !== itemId)
+      this.setState({
+        cartItems : cartItems,
+      })
+    }
+    else {
+      const itemIndex = cartItems.findIndex((item => item.id === itemId))
+      cartItems[itemIndex].quantity = quantity
+      cartItems[itemIndex].total = cartItems[itemIndex].price * quantity
+      cartItems[itemIndex].totalCost = cartItems[itemIndex].cost * quantity
+      this.setState({
+        cartItems : cartItems,
+      })
+    }
+    this.updateTotal()
+
   }
 
   render() {
 
-    const { theme, lang, cartItems, total, totalQuantity, handleEditQuantity } = this.props
-    console.log(cartItems);
+    const { lang } = this.props
+    const { total, totalQuantity, cartItems } = this.state
     const myScript = {
       EN:{
         item: 'Item',
@@ -49,7 +97,7 @@ export default class ReceiptView extends Component {
                  <ReceiptItems
                   item = {item}
                   key = {item.id}
-                  handleEditQuantity = {handleEditQuantity}
+                  handleEditQuantity = {this.handleQuantityChange}
                  />
                )
              })
