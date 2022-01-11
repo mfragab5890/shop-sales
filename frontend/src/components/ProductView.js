@@ -1,12 +1,15 @@
 import React, { Component } from 'react'
-import { Segment, Image, Card, Button, Accordion, Icon } from 'semantic-ui-react'
+import { Segment, Image, Card, Button, Accordion, Icon, Message, List } from 'semantic-ui-react'
 import bwipjs from 'bwip-js'
 import ReactToPrint from 'react-to-print';
+import { deleteProduct } from '../utils/api'
 
 export default class ProductView extends Component {
   state = {
     barcodeImage : '',
-    activeIndex: 1
+    activeIndex: 1,
+    message: '',
+    success: true,
   }
 
   handleDetailsClick = (e, titleProps) => {
@@ -25,7 +28,7 @@ export default class ProductView extends Component {
     const { id, name } = this.props.product
     try {
       // The return value is the canvas element
-      let canvas = await bwipjs.toCanvas((name.replace(/\s/g, '') +'_'+ id), {
+      await bwipjs.toCanvas((name.replace(/\s/g, '') +'_'+ id), {
                 bcid:        'code128',       // Barcode type
                 text:        newValue,    // Text to encode
                 scale:       2,               // 2x scaling factor
@@ -42,6 +45,33 @@ export default class ProductView extends Component {
 
   }
 
+  handleRemoveProduct = async (productId) => {
+    const { lang } = this.props
+    const message = lang === 'EN'
+      ? `Are You Sure You Want To Delete Product Number ${productId}`
+      : `هل انت متاكد انك تريد حذف المنتج رقم ${productId}`
+    if (window.confirm(message)) {
+      await deleteProduct(productId).then(res => {
+        if (res.success === true) {
+          this.setState({
+            message: res.message,
+            success: true
+          })
+        }
+        else {
+          this.setState({
+            message: res.message,
+            success: false
+          })
+        }
+
+        setTimeout(() => this.setState({
+          message: ''
+        }), 3000)
+      })
+    }
+  }
+
   componentDidMount = async () => {
     const { id } = this.props.product
     await this.handleBarcodeGenerator(id)
@@ -53,17 +83,29 @@ export default class ProductView extends Component {
   render() {
 
     const { product, theme, lang } = this.props
-    const { barcodeImage, activeIndex } = this.state
+    const { barcodeImage, activeIndex, message, success } = this.state
     const myScript = {
       EN: {
+        description: 'Description',
+        quantity: 'Quantity',
+        sellPrice: 'Selling Price',
+        sold: 'Sold',
         btns:{
           print: 'Print Barcode',
+          edit: 'Edit',
+          remove: 'Remove',
         },
         details: 'Product Details'
       },
       AR: {
+        description: 'الوصف',
+        quantity: 'الكمية',
+        sellPrice: 'سعر البيع',
+        sold: 'المبيعات',
         btns:{
           print: 'طباعة الباركود',
+          edit: 'تعديل',
+          remove: 'حذف',
         },
         details: 'بيانات المنتج'
       },
@@ -74,6 +116,14 @@ export default class ProductView extends Component {
                   .slice(0, -1)
     return (
       <Card color={theme}>
+        {
+          message !== '' &&
+          <Message
+            success = {success}
+            header='success'
+            content= {message}
+          />
+        }
         <Card.Content>
           <Card.Header>
             {product.name}
@@ -83,7 +133,7 @@ export default class ProductView extends Component {
               src={image? image : '/logo.png'}
             />
           </Card.Header>
-          <Card.Meta>{product.id}</Card.Meta>
+          <Card.Meta>{product.id} | {product.created_on}</Card.Meta>
 
         </Card.Content>
         <Card.Content>
@@ -97,21 +147,44 @@ export default class ProductView extends Component {
               {myScript[lang].details}
             </Accordion.Title>
             <Accordion.Content active={activeIndex === 0}>
-              <Card.Description>
-                Description: {product.description}
-              </Card.Description>
-              <Card.Description>
-                Quantity: {product.qty}
-              </Card.Description>
-              <Card.Description>
-                Selling Price: {product.sell_price}
-              </Card.Description>
-              <Card.Description>
-                Sold: {product.sold}
-              </Card.Description>
-              <Segment centered textAlign = 'center'>
+              <List divided relaxed>
+                <List.Item>
+                  <List.Icon name='newspaper outline' size='large' verticalAlign='middle' />
+                  <List.Content>
+                    <List.Header as='a'>{myScript[lang].description}</List.Header>
+                    <List.Description as='a'>{product.description}</List.Description>
+                  </List.Content>
+                </List.Item>
+                <List.Item>
+                  <List.Icon name='hashtag' size='large' verticalAlign='middle' />
+                  <List.Content>
+                    <List.Header as='a'>{myScript[lang].quantity}</List.Header>
+                    <List.Description as='a'>{product.qty}</List.Description>
+                  </List.Content>
+                </List.Item>
+                <List.Item>
+                  <List.Icon name='pound' size='large' verticalAlign='middle' />
+                  <List.Content>
+                    <List.Header as='a'>{myScript[lang].sellPrice}</List.Header>
+                    <List.Description as='a'>{product.sell_price}</List.Description>
+                  </List.Content>
+                </List.Item>
+                <List.Item>
+                  <List.Icon name='chart line' size='large' verticalAlign='middle' />
+                  <List.Content>
+                    <List.Header as='a'>{myScript[lang].sold}</List.Header>
+                    <List.Description as='a'>{product.sold}</List.Description>
+                  </List.Content>
+                </List.Item>
+              </List>
+              <Segment textAlign = 'center'>
                 <canvas id={product.name.replace(/\s/g, '') +'_'+ product.id} style={{padding:'3px', margin: '3px', display: 'none'}}  ref={el => (this.canavasRef = el)} />
-                <img src={barcodeImage} className="ui centered spaced image" ref={el => (this.barcodeRef = el)}/>
+                <div ref={el => (this.barcodeRef = el)}>
+                  <img alt = 'barcode' src={barcodeImage} className="ui centered spaced image" />
+                  <br/>
+                  <br/>
+                  <img alt = 'barcode' src={barcodeImage} className="ui centered spaced image" />
+                </div>
                 <ReactToPrint
                   trigger={() => {
                     return <Button color = {theme} icon='print' attached='bottom'></Button>;
@@ -125,10 +198,10 @@ export default class ProductView extends Component {
         <Card.Content extra>
           <div className='ui two buttons'>
             <Button basic color='green'>
-              Edit
+              {myScript[lang].btns.edit}
             </Button>
-            <Button basic color='red'>
-              Delete
+            <Button basic color='red' onClick = {() => this.handleRemoveProduct(product.id)}>
+              {myScript[lang].btns.remove}
             </Button>
           </div>
         </Card.Content>
