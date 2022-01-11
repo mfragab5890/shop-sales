@@ -1,7 +1,8 @@
 import React, { Component } from 'react'
-import { Button, Header, Icon, Modal, Segment, Item, Step, Statistic} from 'semantic-ui-react'
+import { Button, Header, Icon, Modal, Segment, Item, Step, Statistic, Message} from 'semantic-ui-react'
 import { getMonthOrders } from '../utils/api'
 import ReceiptView from './ReceiptView'
+import { deleteOrder } from '../utils/api'
 
 export default class SalesMonth extends Component {
   state = {
@@ -11,6 +12,8 @@ export default class SalesMonth extends Component {
     totalIncome: '',
     totalQuantity: '',
     revenue: '',
+    message: '',
+    success: true
   }
   setOpen = (value) => {
     this.setState({
@@ -20,6 +23,38 @@ export default class SalesMonth extends Component {
 
   handleEditQuantity = async (quantity, id) => {
 
+  }
+
+  handleEditOrder = (orderId) => {
+    console.log(orderId);
+  }
+
+  handleRemoveOrder = async (orderId) => {
+    const { lang } = this.props
+    const message = lang === 'EN'
+      ? `Are You Sure You Want To Delete Order Number ${orderId}`
+      : `هل انت متاكد انك تريد حذف عملية البيع رقم ${orderId}`
+    if (window.confirm(message)) {
+      await deleteOrder(orderId).then(res => {
+        if (res.success === true) {
+          this.setState({
+            message: res.message,
+            success: true,
+            orderId: ''
+          })
+        }
+        else {
+          this.setState({
+            message: res.message,
+            success: false,
+            orderId: ''
+          })
+        }
+        setTimeout(() => this.setState({
+          message: ''
+        }), 3000)
+      })
+    }
   }
 
   componentDidMount = async () =>{
@@ -49,7 +84,7 @@ export default class SalesMonth extends Component {
   render() {
 
     const { theme, lang } = this.props
-    const { orderId, monthSales, totalIncome, totalCost, totalQuantity, revenue } = this.state
+    const { orderId, monthSales, totalIncome, totalCost, totalQuantity, revenue, message, success } = this.state
     const myScript = {
       EN: {
         totalIncome : 'Total Income',
@@ -59,7 +94,13 @@ export default class SalesMonth extends Component {
         quantity : 'Quantity',
         totalPrice: 'Total Price',
         showReciept: 'Show Reciept',
+        deleteReciept: 'Delete Reciept',
         details: 'Orders Details',
+        orderId: 'Order ID : ',
+        btns:{
+          edit: 'Save Edit',
+          remove: 'Delete',
+        }
       },
       AR: {
         totalIncome : 'اجمالي الدخل',
@@ -69,9 +110,16 @@ export default class SalesMonth extends Component {
         quantity : 'عدد الاصناف',
         totalPrice: 'اجمالي السعر',
         showReciept: 'اظهار الفاتورة',
+        deleteReciept: 'حذف الفاتورة',
         details: 'تفاصيل المبيعات',
+        orderId: 'طلب رقم : ',
+        btns:{
+          edit: ' حفظ التعديل',
+          remove: 'حذف',
+        }
       }
     }
+
     return (
       <Segment.Group>
         <Segment inverted>
@@ -92,14 +140,14 @@ export default class SalesMonth extends Component {
 
             <Statistic>
               <Statistic.Value>
-                <Icon name='pound' size='tiny'/>{revenue}
+                <Icon name='pound' size='tiny'/>{revenue}<Icon name={revenue >=0? 'long arrow alternate up' : 'long arrow alternate down'} />
               </Statistic.Value>
               <Statistic.Label>{myScript[lang].revenue}</Statistic.Label>
             </Statistic>
 
             <Statistic>
               <Statistic.Value>
-                <Icon name='gem' size='tiny'/>{totalQuantity}
+                <Icon name='chart line' size='tiny'/>{totalQuantity}
               </Statistic.Value>
               <Statistic.Label>{myScript[lang].totalItems}</Statistic.Label>
             </Statistic>
@@ -107,6 +155,14 @@ export default class SalesMonth extends Component {
         </Segment>
         <Segment>
           <Header as = 'h1'>{myScript[lang].details}:</Header>
+          {
+            message !== '' &&
+            <Message
+              success = {success}
+              header='success'
+              content= {message}
+            />
+          }
           {
             monthSales.map((order) => (
               <Item.Group key = {order.id}>
@@ -138,6 +194,15 @@ export default class SalesMonth extends Component {
                             </Step.Content>
                         </Step>
                         <Step>
+                          <Button
+                            icon='delete'
+                            color = {'red'}
+                            label = {myScript[lang].deleteReciept}
+                            size='small'
+                            labelPosition='right'
+                            onClick = {() => this.handleRemoveOrder(order.id)}
+                          />
+                          |
                           <Modal
                             closeIcon
                             open={orderId === order.id ? true : false}
@@ -146,7 +211,7 @@ export default class SalesMonth extends Component {
                             onClose={() => this.setOpen('')}
                             onOpen={() => this.setOpen(order.id)}
                           >
-                            <Header icon='archive' content='Archive Old Messages' />
+                            <Header icon='archive' content={myScript[lang].orderId+ order.id} />
                             <Modal.Content>
                               <ReceiptView
                                 theme = {theme}
@@ -154,15 +219,16 @@ export default class SalesMonth extends Component {
                                 cartItems = {order.items}
                                 total = {order.total_price}
                                 totalQuantity = {order.qty}
+                                orderId = {order.id}
                                 handleEditQuantity = {this.handleEditQuantity}
                               />
                             </Modal.Content>
                             <Modal.Actions>
-                              <Button color='red' onClick={() => this.setOpen('')}>
-                                <Icon name='remove' /> No
+                              <Button color='red' onClick={() => this.handleRemoveOrder(order.id)}>
+                                <Icon name='remove' /> {myScript[lang].btns.remove}
                               </Button>
-                              <Button color='green' onClick={() => this.setOpen('')}>
-                                <Icon name='checkmark' /> Yes
+                              <Button color={theme} onClick={() => this.handleEditOrder(order.id)}>
+                                <Icon name='edit' /> {myScript[lang].btns.edit}
                               </Button>
                             </Modal.Actions>
                           </Modal>
