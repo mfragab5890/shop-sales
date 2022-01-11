@@ -92,3 +92,41 @@ export const getPeriodOrders = (periodFrom, periodTo) =>
       periodTo,
     }),
   }).then(res => res.json())
+
+export const login = (username, password) =>
+  fetch(`${api}/login`, {
+    method: 'POST',
+    headers: {
+      ...headers,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      username,
+      password,
+    }),
+  }).then(res => res.json())
+
+export const logout = (username, password) =>
+  fetch(`${api}/login`, {
+    method: 'POST',
+    headers: {
+      ...headers,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      username,
+      password,
+    }),
+  }).then(res => res.json())
+
+export const saveNewUser = (user) =>
+  fetch(`${api}/user/new`, {
+    method: 'POST',
+    headers: {
+      ...headers,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      user,
+    }),
+  }).then(res => res.json())
