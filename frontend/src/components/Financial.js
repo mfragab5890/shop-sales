@@ -4,6 +4,7 @@ import Error from './Error'
 import { Segment, Menu } from 'semantic-ui-react'
 import SalesToday from './SalesToday'
 import SalesMonth from './SalesMonth'
+import SalesPeriod from './SalesPeriod'
 
 class Financial extends Component {
   state = { activeItem: 'Today Sales' }
@@ -16,6 +17,9 @@ class Financial extends Component {
     if (name === 'Month Sales') {
       return this.props.history.push('/financial/month')
     }
+    if (name === 'Period Sales') {
+      return this.props.history.push('/financial/period')
+    }
 
   }
 
@@ -27,6 +31,9 @@ class Financial extends Component {
     if (location.includes('month')) {
       this.setState({ activeItem: 'Month Sales' })
     }
+    if (location.includes('period')) {
+      this.setState({ activeItem: 'Period Sales' })
+    }
 
   }
 
@@ -37,10 +44,13 @@ class Financial extends Component {
       AR: {
         firstTab: 'مبيعات اليوم',
         secondTab: 'مبيعات الشهر',
+        thirdTab: 'مبيعات بالفترة'
       },
       EN:{
         firstTab: 'Today Sales',
         secondTab: 'Month Sales',
+        thirdTab: 'Period Sales'
+
       }
     }
     return (
@@ -61,6 +71,13 @@ class Financial extends Component {
           >
             {myScript[lang].secondTab}
           </Menu.Item>
+          <Menu.Item
+            name= {myScript.EN.thirdTab}
+            active= {activeItem === myScript.EN.thirdTab}
+            onClick={this.handleItemClick}
+          >
+            {myScript[lang].thirdTab}
+          </Menu.Item>
         </Menu>
 
         <Segment color={theme}>
@@ -73,6 +90,9 @@ class Financial extends Component {
             </Route>
             <Route exact path='/financial/month'>
               <SalesMonth theme = {theme} lang = {lang}/>
+            </Route>
+            <Route exact path='/financial/period'>
+              <SalesPeriod theme = {theme} lang = {lang}/>
             </Route>
             <Route path="*">
               <Error message = {'No Such page Please Go Back Or Navigate Using Menus'}/>
