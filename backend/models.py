@@ -32,10 +32,8 @@ class User(db.Model):
     user_name = db.Column(db.String, nullable=False, unique=True)
     email = db.Column(db.String, nullable=False, unique=True)
     password_hash = db.Column(db.String(128), nullable=False)
-    products = db.relationship('Products', backref='user_products', lazy=True, cascade="all, delete-orphan")
     permissions = db.relationship('UserPermissions', backref='user_permissions', lazy=True,
                                   cascade="all, delete-orphan")
-    orders = db.relationship('Orders', backref='user_sales', lazy=True, cascade="all, delete-orphan")
 
     def __init__(self, user_name, email, password):
         self.user_name = user_name
@@ -136,19 +134,19 @@ class Products(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
-    code = db.Column(db.String, unique=True, nullable=False)
+    created_on = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow)
     qty = db.Column(db.Integer, default=0)
     sell_price = db.Column(db.Integer, nullable=False)
     buy_price = db.Column(db.Integer, nullable=False)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     mini = db.Column(db.Integer, default=0)
     maxi = db.Column(db.Integer)
     sold = db.Column(db.Integer, default=0)
     image = db.Column(db.LargeBinary)
+    items = db.relationship('OrderItems', backref='product_order_items', lazy=True, cascade="all, delete-orphan")
 
-    def __init__(self, name, code, qty, created_by, mini, maxi, sold, image, description, sell_price, buy_price):
+    def __init__(self, name, qty, created_by, mini, maxi, sold, image, description, sell_price, buy_price):
         self.name = name
-        self.code = code
         self.qty = qty
         self.created_by = created_by
         self.mini = mini
@@ -160,7 +158,6 @@ class Products(db.Model):
         self.image = base64.b64decode(image)
 
     def insert(self):
-        print(base64.urlsafe_b64encode(self.image))
         db.session.add(self)
         db.session.commit()
 
@@ -179,7 +176,7 @@ class Products(db.Model):
         return {
             'id': self.id,
             'name': self.name,
-            'code': self.code,
+            'created_on': self.created_on,
             'sell_price': self.sell_price,
             'buy_price': self.buy_price,
             'qty': self.qty,
@@ -242,7 +239,7 @@ class OrderItems(db.Model):
     total_price = db.Column(db.Integer, nullable=False)
     total_cost = db.Column(db.Integer, nullable=False)
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
 
     def __init__(self, qty, total_price, total_cost, order_id, product_id):
         self.qty = qty
