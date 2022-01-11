@@ -40,9 +40,11 @@ export default class ReceiptItems extends Component {
   handleQuantityChange = async (e) => {
     const { handleEditQuantity, item } = this.props
     const { quantity } = this.state
+    const { value } = e.target
     if (e.key === 'Enter' || e.type === 'blur') {
       await this.setState({
               editQantity : false,
+              quantity : value,
             })
       await handleEditQuantity(Number(quantity), item.id)
 
