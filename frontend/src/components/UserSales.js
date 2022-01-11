@@ -43,21 +43,36 @@ export default class UserSales extends Component {
     const myScript = {
       EN: {
         totalIncome : 'Total Income',
+        totalCost : 'Total Cost',
+        revenue : 'Revenue',
         totalItems : 'Total Items Sold',
         quantity : 'Quantity',
         totalPrice: 'Total Price',
         showReciept: 'Show Reciept',
         details: 'Orders Details',
+        orderId: 'Order ID : ',
+        btns:{
+          edit: 'Edit',
+          remove: 'Delete',
+        }
       },
       AR: {
         totalIncome : 'اجمالي الدخل',
+        totalCost : 'اجمالي التكلفة',
+        revenue : 'العائد',
         totalItems : 'اجمالي عدد الاصناف',
         quantity : 'عدد الاصناف',
         totalPrice: 'اجمالي السعر',
         showReciept: 'اظهار الفاتورة',
         details: 'تفاصيل المبيعات',
+        orderId: 'طلب رقم : ',
+        btns:{
+          edit: 'تعديل',
+          remove: 'حذف',
+        }
       }
     }
+
     return (
       <Segment.Group>
         <Segment inverted>
@@ -69,7 +84,7 @@ export default class UserSales extends Component {
 
             <Statistic>
               <Statistic.Value>
-                <Icon name='gem' size='tiny'/>{totalQuantity}
+                <Icon name='chart line' size='tiny'/>{totalQuantity}
               </Statistic.Value>
               <Statistic.Label>{myScript[lang].totalItems}</Statistic.Label>
             </Statistic>
@@ -109,7 +124,7 @@ export default class UserSales extends Component {
                             onClose={() => this.setOpen('')}
                             onOpen={() => this.setOpen(order.id)}
                           >
-                            <Header icon='archive' content='Archive Old Messages' />
+                            <Header icon='archive' content={myScript[lang].orderId+ order.id} />
                             <Modal.Content>
                               <ReceiptView
                                 theme = {theme}
@@ -120,14 +135,6 @@ export default class UserSales extends Component {
                                 handleEditQuantity = {this.handleEditQuantity}
                               />
                             </Modal.Content>
-                            <Modal.Actions>
-                              <Button color='red' onClick={() => this.setOpen('')}>
-                                <Icon name='remove' /> No
-                              </Button>
-                              <Button color='green' onClick={() => this.setOpen('')}>
-                                <Icon name='checkmark' /> Yes
-                              </Button>
-                            </Modal.Actions>
                           </Modal>
                         </Step>
                       </Step.Group>
