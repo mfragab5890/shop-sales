@@ -11,7 +11,7 @@ export default class Cart extends Component {
 
   render() {
 
-    const { theme, lang, cartItems, total, totalQuantity, handleEditQuantity } = this.props
+    const { lang, cartItems, total, totalQuantity, handleEditQuantity } = this.props
     const myScript = {
       EN:{
         item: 'Item',
@@ -32,7 +32,7 @@ export default class Cart extends Component {
     return (
       <div>
         <Image circular size = 'tiny' src='/logoN.jpeg' centered />
-        <Table padded stackable>
+        <Table padded stackable basic='very' size='large'>
           <Table.Header>
             <Table.Row>
              <Table.HeaderCell singleLine>{ myScript[lang].item }</Table.HeaderCell>
