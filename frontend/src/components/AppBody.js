@@ -9,7 +9,7 @@ import { Route, Switch, Redirect } from 'react-router-dom'
 
 export default class AppBody extends Component {
   render() {
-    const { theme, lang, products } = this.props
+    const { theme, lang, products, pages } = this.props
     return (
       <Grid columns={2}>
         <Grid.Column floated='left' stretched width={3} style = {{padding:'20px 0px 20px 0px',}}>
@@ -36,7 +36,7 @@ export default class AppBody extends Component {
               />
             <Route path='/products' render ={() =>{
                 return (
-                  <Products theme = {theme} lang = {lang} products = { products }/>
+                  <Products theme = {theme} lang = {lang} products = { products } pages = {pages}/>
                   );
                 }
               }
