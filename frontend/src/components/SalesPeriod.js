@@ -25,7 +25,6 @@ export default class SalesPeriod extends Component {
   }
   handleDateChange = (e) => {
     const { name, value } = e.target
-    console.log(name, ': ', value);
     if (name === 'from') {
       return this.setState({
         periodFrom: value
