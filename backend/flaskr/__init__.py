@@ -1,15 +1,14 @@
-import os
 from flask_cors import CORS
-import random
-import json
 import dateutil.parser
 import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify, abort
-from sqlalchemy import func, extract, or_
+from flask import Flask, request, jsonify, abort
+from sqlalchemy import extract, or_
 from math import ceil
-from models import setup_db, database_name, Products, db, Orders, OrderItems
-from datetime import datetime, date
-import base64
+from werkzeug.security import generate_password_hash, check_password_hash
+from models import setup_db, database_name, Products, db, Orders, OrderItems, User
+from datetime import datetime, timedelta, timezone
+from flask_jwt_extended import create_access_token, get_jwt, get_jwt_identity, unset_jwt_cookies, jwt_required, \
+    JWTManager
 
 
 # ----------------------------------------------------------------------------#
@@ -20,6 +19,7 @@ def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
     setup_db(app, database_name)
     CORS(app)
+    jwt = JWTManager(app)
 
     # CORS Headers
     @app.after_request
@@ -27,6 +27,21 @@ def create_app(test_config=None):
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,true')
         response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
         return response
+
+    # Refreshing tokens
+    @app.after_request
+    def refresh_expiring_jwts(response):
+        try:
+            exp_timestamp = get_jwt()[ "exp" ]
+            print(get_jwt())
+            now = datetime.now(timezone.utc)
+            target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
+            if target_timestamp > exp_timestamp:
+                access_token = create_access_token(identity=get_jwt_identity())
+            return response
+        except (RuntimeError, KeyError):
+            # Case where there is not a valid JWT. Just return the original respone
+            return response
 
     # connection in configuration file added
 
@@ -49,20 +64,143 @@ def create_app(test_config=None):
     app.jinja_env.filters[ 'datetime' ] = format_datetime
 
     # ----------------------------------------------------------------------------#
+    # Initial Data.
+    # ----------------------------------------------------------------------------#
+    # create admin user first time to run the app
+    admin_user = User.query.get(1)
+    if not admin_user:
+        print('creating new user')
+        admin = User(
+            id=1,
+            username='admin',
+            password_hash=generate_password_hash('adminADMIN', method='sha256'),
+            email='m.f.ragab5890@gmail.com'
+        )
+        admin.insert()
+
+    # ----------------------------------------------------------------------------#
     # Controllers.
     # ----------------------------------------------------------------------------#
 
     @app.route('/', methods=[ 'GET' ])
+    @jwt_required()
     def get_home_data():
-        return jsonify({
-            'success': True,
-            'message': 'welcome to Fiori'
-        })
+        try:
+            user = User.query.get(1)
+            return jsonify({
+                'success': True,
+                'message': user.format_no_password(),
+            })
+        except Exception as e:
+            print(e)
+            abort(400)
+
+    @app.route('/login', methods=[ 'POST' ])
+    def login():
+        body = request.get_json()
+        username = body.get('username')
+        password = body.get('password')
+        remember = True if body.get('remember') else False
+
+        user = User.query.filter(User.username == username).first()
+        # check if the user actually exists
+        # take the user-supplied password, hash it, and compare it to the hashed password in the database
+        if not user or not check_password_hash(user.password_hash, password):
+            return jsonify({
+                'success': False,
+                'message': 'Username OR Password Are Not Correct',
+            })
+        else:
+            access_token = create_access_token(identity=user.id)
+            response = jsonify({
+                'success': True,
+                'message': 'User LoggedIn Correctly AS: ',
+                'token': access_token,
+            })
+            return response
+
+    @app.route('/user/new', methods=[ 'POST' ])
+    @jwt_required()
+    def signup():
+        body = request.get_json()
+        email = body.get('email')
+        username = body.get('username')
+        password = body.get('password')
+        password_hash = generate_password_hash(password, method='sha256')
+        # if this returns a user, then the username already exists in database
+        user = User.query.filter(User.username == username).first()
+
+        if user:  # if a user is found, we want to a message
+            return jsonify({
+                'success': False,
+                'message': 'Username Already Exists',
+            })
+        # if this returns a user, then the email already exists in database
+        user = User.query.filter(User.email == email).first()
+
+        if user:  # if a user is found, we want to redirect back to signup page so user can try again
+            return jsonify({
+                'success': False,
+                'message': 'Email Already Exists',
+            })
+
+        # create a new user with the form data. Hash the password so the plaintext version isn't saved.
+        new_user = User(
+            username=username,
+            email=email,
+            password_hash=password_hash,
+        )
+        try:
+            new_user.insert()
+            # get new list id
+            user = Products.query \
+                .filter(User.username == username) \
+                .order_by(db.desc(User.id)).first().format()
+            return jsonify({
+                'success': True,
+                'message': 'user created successfully',
+                'newProduct': user,
+            })
+        except Exception as e:
+            print(e)
+            abort(400)
+
+        # add the new user to the database
+
+        return 'Signup'
+
+    @app.route('/user/<int:user_id>', methods=[ 'DELETE' ])
+    @jwt_required()
+    def delete_user(user_id):
+        if user_id != 1:
+            user = User.query.get(user_id)
+            try:
+                user.delete()
+                return jsonify({
+                    'success': True,
+                    'message': 'user of ID: ' + user_id + ' deleted successfully',
+                })
+            except Exception as e:
+                print(e)
+                abort(400)
+        else:
+            return jsonify({
+                'success': True,
+                'message': 'Warning! You Are Trying To Delete the Admin User This User Can Not Be Deleted',
+            })
+
+    @app.route('/logout', methods=[ 'GET' ])
+    @jwt_required()
+    def logout():
+        response = jsonify({"msg": "logout successful"})
+        unset_jwt_cookies(response)
+        return response
 
     # create new product endpoint. this end point should take:
     # name, sell_price, buy_price, qty, created_by, mini, maxi, sold, image, description
     # permission: create_product
     @app.route('/products/new', methods=[ 'POST' ])
+    @jwt_required()
     def create_product():
         body = request.get_json()
         name = body.get('name', None)
@@ -104,6 +242,7 @@ def create_app(test_config=None):
             abort(400)
 
     @app.route('/products/all/<int:page>', methods=[ 'GET' ])
+    @jwt_required()
     def get_all_products(page):
         results_per_page = 33
         if not page:
@@ -119,6 +258,7 @@ def create_app(test_config=None):
             abort(400)
 
     @app.route('/products/search/id/<int:product_id>', methods=[ 'GET' ])
+    @jwt_required()
     def search_products_id(product_id):
         try:
             data = Products.query.filter(Products.id == product_id).first()
@@ -136,6 +276,7 @@ def create_app(test_config=None):
             abort(400)
 
     @app.route('/products/search/<string:search_term>', methods=[ 'GET' ])
+    @jwt_required()
     def search_products_string(search_term):
         try:
             data = Products.query.filter(or_(Products.name.ilike('%' + search_term + '%'),
@@ -158,6 +299,7 @@ def create_app(test_config=None):
         # permission: delete_product
 
     @app.route('/products/delete/<int:product_id>', methods=[ 'DELETE' ])
+    @jwt_required()
     def delete_product(product_id):
         # check if user logged in and has permission
         if product_id is None:
@@ -180,6 +322,7 @@ def create_app(test_config=None):
     # order items, user, total
     # permission: create_order
     @app.route('/orders/new', methods=[ 'POST' ])
+    @jwt_required()
     def create_order():
         body = request.get_json()
         cart_items = body.get('cartItems', [ ])
@@ -241,6 +384,7 @@ def create_app(test_config=None):
 
     # Get current month sales
     @app.route('/sales/month', methods=[ 'GET' ])
+    @jwt_required()
     def get_month_orders():
         try:
             orders_query = Orders.query.filter(
@@ -256,6 +400,7 @@ def create_app(test_config=None):
 
     # Get custom period sales
     @app.route('/sales/period', methods=[ 'POST' ])
+    @jwt_required()
     def get_period_orders():
         try:
             body = request.get_json()
@@ -264,7 +409,7 @@ def create_app(test_config=None):
             orders_query = Orders.query.filter(
                 Orders.created_on >= period_from,
                 Orders.created_on <= period_to,
-                ).order_by(db.desc(Orders.id)).all()
+            ).order_by(db.desc(Orders.id)).all()
             orders = [ order.format() for order in orders_query ]
             return jsonify({'orders': orders})
         except Exception as e:
@@ -273,6 +418,7 @@ def create_app(test_config=None):
 
     # Get today sales
     @app.route('/sales/today', methods=[ 'GET' ])
+    @jwt_required()
     def get_today_orders():
         try:
             orders_query = Orders.query.filter(
@@ -291,6 +437,7 @@ def create_app(test_config=None):
     # delete orders endpoint.
     # permission: delete_order
     @app.route('/orders/delete/<int:order_id>', methods=[ 'DELETE' ])
+    @jwt_required()
     def delete_order(order_id):
         # check if user logged in and has permission
         if order_id is None:

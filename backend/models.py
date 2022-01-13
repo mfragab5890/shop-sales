@@ -29,16 +29,21 @@ class User(db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_name = db.Column(db.String, nullable=False, unique=True)
+    username = db.Column(db.String, nullable=False, unique=True)
     email = db.Column(db.String, nullable=False, unique=True)
     password_hash = db.Column(db.String(128), nullable=False)
     permissions = db.relationship('UserPermissions', backref='user_permissions', lazy=True,
                                   cascade="all, delete-orphan")
+    products = db.relationship('Products', backref='user_products', lazy=True,
+                               cascade="all, delete-orphan")
+    orders = db.relationship('Orders', backref='user_orders', lazy=True,
+                             cascade="all, delete-orphan")
 
-    def __init__(self, user_name, email, password):
-        self.user_name = user_name
+    def __init__(self, id, username, email, password_hash):
+        self.id = id
+        self.username = username
         self.email = email
-        self.password_hash = password
+        self.password_hash = password_hash
 
     def insert(self):
         db.session.add(self)
@@ -54,7 +59,7 @@ class User(db.Model):
     def format(self):
         return {
             'id': self.id,
-            'user_name': self.user_name,
+            'username': self.username,
             'email': self.email,
             'password_hash': self.password_hash,
         }
@@ -62,8 +67,11 @@ class User(db.Model):
     def format_no_password(self):
         return {
             'id': self.id,
-            'user_name': self.user_name,
+            'username': self.username,
             'email': self.email,
+            'products': [ product.format() for product in self.products ],
+            'orders': [ order.format() for order in self.orders ],
+
         }
 
 
@@ -138,7 +146,7 @@ class Products(db.Model):
     qty = db.Column(db.Integer, default=0)
     sell_price = db.Column(db.Integer, nullable=False)
     buy_price = db.Column(db.Integer, nullable=False)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, default=1)
     mini = db.Column(db.Integer, default=0)
     maxi = db.Column(db.Integer)
     sold = db.Column(db.Integer, default=0)
@@ -197,7 +205,7 @@ class Orders(db.Model):
     qty = db.Column(db.Integer, default=0)
     total_price = db.Column(db.Integer, nullable=False)
     total_cost = db.Column(db.Integer, nullable=False)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, default=1)
     created_on = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow)
     items = db.relationship('OrderItems', backref='order_items', lazy=True, cascade="all, delete-orphan")
 
@@ -226,7 +234,7 @@ class Orders(db.Model):
             'total_price': self.total_price,
             'total_cost': self.total_cost,
             'created_on': self.created_on,
-            'items' : [item.format() for item in self.items]
+            'items': [ item.format() for item in self.items ]
         }
 
 

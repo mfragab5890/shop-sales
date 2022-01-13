@@ -1,91 +1,60 @@
-import React from 'react'
-import { getHomeData, getAllProducts } from '../utils/api'
+import React, { Component, Fragment } from 'react'
 import 'semantic-ui-css/semantic.min.css'
-import { Container } from 'semantic-ui-react'
-import AppHeader from './AppHeader'
-import AppBody from './AppBody'
-import AppFooter from './AppFooter'
+import LoadingBar from 'react-redux-loading'
+import { connect } from 'react-redux'
+import { Route, Redirect, withRouter, Switch } from 'react-router-dom'
+import Main from './Main'
+import Login from './Login'
+import SignUp from './SignUp'
+import { getToken } from '../utils/token'
 
-class App extends React.Component {
+class App extends Component {
   state = {
     homeData: {},
     products: [],
+    prevLocation: '',
     pages:0,
     theme: 'black',
     lang: 'AR',
+    authedUser: null,
   }
 
-  handleThemeChange = (theme) => {
-    const colors = [
-      'basic',
-      'black',
-      'red',
-      'blue',
-      'purple',
-      'orange',
-      'yellow',
-      'pink',
-      'green',
-      'teal',
-      ]
-    if (colors.includes(theme)) {
-      this.setState({
-        theme: theme
-      })
-    }
-  }
-  handleLangChange = (lang) => {
-    const langs = [ 'AR', 'EN' ]
-    if (langs.includes(lang)) {
-      this.setState({
-        lang: lang
-      })
-    }
-
-  }
   componentDidMount = async () => {
-    let homeData = null
-    getHomeData()
-    .then(data => {
-      homeData = data
-      return this.setState({
-        homeData: homeData
-      });
-    })
-    .catch(err => {console.log(err);})
-    const products_obj  = await getAllProducts()
-    const products = products_obj.products
-    const pages = products_obj.pages
-    await this.setState({
-      products: products,
-      pages: pages
-    })
+    const { prevLocation } = this.state
+    const { pathname } = this.props.location
+    if ( prevLocation !== pathname ) {
+      await this.setState({
+        prevLocation : pathname
+      })
+    }
   }
+
   render(){
-    const { homeData, theme, lang, products, pages } = this.state
-    return (
-      <Container fluid>
-        <AppHeader
-          data = {homeData}
-          theme = {theme}
-          lang = {lang}
-          onLangChange = {this.handleLangChange}
-          onThemeChange = {this.handleThemeChange}
+    const { homeData, theme, lang, products, pages, prevLocation,authedUser } = this.state
+    console.log(authedUser);
+    if (!authedUser && authedUser!=="" &&authedUser!== undefined) {
+      return (
+        <Fragment>
+          <LoadingBar />
+          <Route exact path='/sign-up' render ={() => (
+              <SignUp prevLocation = {prevLocation} />
+            )}
           />
-        <AppBody
-          theme = {theme}
-          lang = {lang}
-          products = { products }
-          pages = {pages}
+          <Route exact path='/log-in' render ={() => (
+              <Login prevLocation = {prevLocation}/>
+            )}
           />
-        <AppFooter
-          theme = {theme}
-          lang = {lang}
-          />
-      </Container>
-    );
+        <Redirect to='/log-in' />
+        </Fragment>
+      );
+    }
+    else {
+      return (
+        <Main.js/>
+      );
+    }
   }
 
 }
 
-export default App;
+export default withRouter(connect()(App))

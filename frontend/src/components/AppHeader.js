@@ -1,6 +1,6 @@
 import React from 'react'
 import { Header, Image, Grid, Dropdown } from 'semantic-ui-react'
-
+import { removeToken } from '../utils/token'
 const themeOptions = [
   {
     key: 'basic',
@@ -124,7 +124,9 @@ export default class AppHeader extends React.Component {
                     </Dropdown.Menu>
                   </Dropdown.Menu>
                 </Dropdown>
-                {lang === 'EN' ? 'Logged in as': 'المستخدم' } Mostafa fouad
+                <span onClick = {(e) => {
+                    console.log(e);
+                    removeToken()}}>{lang === 'EN' ? 'Logged in as': 'المستخدم' } Mostafa fouad</span>
               </Header>
 
             </Grid.Column>
