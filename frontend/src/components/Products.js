@@ -32,7 +32,7 @@ class Products extends Component {
 
   render() {
     const { activeItem } = this.state
-    const { theme, lang, products,pages } = this.props
+    const { theme, lang } = this.props
     const myScript = {
       AR: {
         firstTab: 'منتج جديد',
@@ -70,7 +70,7 @@ class Products extends Component {
               <NewProduct theme = {theme} lang = {lang}/>
             </Route>
             <Route exact path='/products/all'>
-              <AllProducts theme = {theme} lang = {lang} products = { products } pages = {pages}/>
+              <AllProducts theme = {theme} lang = {lang} />
             </Route>
             <Route path="*">
               <Error message = {'No Such page Please Go Back Or Navigate Using Menus'}/>

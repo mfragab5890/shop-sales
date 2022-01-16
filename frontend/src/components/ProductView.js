@@ -120,7 +120,8 @@ export default class ProductView extends Component {
           message !== '' &&
           <Message
             success = {success}
-            header='success'
+            warning = {!success}
+            header={'success: ' + success}
             content= {message}
           />
         }

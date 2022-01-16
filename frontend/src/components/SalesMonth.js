@@ -59,27 +59,30 @@ export default class SalesMonth extends Component {
 
   componentDidMount = async () =>{
     const data = await getMonthOrders()
-    const monthSales = data.orders
-    let totalIncome = 0
-    let totalCost = 0
-    let totalQuantity = 0
+    if (data.success) {
+      const monthSales = data.orders
+      let totalIncome = 0
+      let totalCost = 0
+      let totalQuantity = 0
 
-    monthSales.map((item) => {
-      totalIncome += item.total_price
-      totalCost += item.total_cost
-      totalQuantity += item.qty
-      return item;
-    })
+      monthSales.map((item) => {
+        totalIncome += item.total_price
+        totalCost += item.total_cost
+        totalQuantity += item.qty
+        return item;
+      })
 
-    const revenue = totalIncome - totalCost
+      const revenue = totalIncome - totalCost
 
-    await this.setState({
-      monthSales,
-      totalIncome,
-      totalCost,
-      totalQuantity,
-      revenue
-    })
+      return this.setState({
+        monthSales,
+        totalIncome,
+        totalCost,
+        totalQuantity,
+        revenue
+      })
+    }
+
   }
   render() {
 

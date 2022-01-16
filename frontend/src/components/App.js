@@ -2,36 +2,36 @@ import React, { Component, Fragment } from 'react'
 import 'semantic-ui-css/semantic.min.css'
 import LoadingBar from 'react-redux-loading'
 import { connect } from 'react-redux'
-import { Route, Redirect, withRouter, Switch } from 'react-router-dom'
+import { Route, Redirect, withRouter} from 'react-router-dom'
+import { getToken } from '../utils/token'
+import { handleInitialData } from '../actions/shared'
 import Main from './Main'
 import Login from './Login'
 import SignUp from './SignUp'
-import { getToken } from '../utils/token'
 
 class App extends Component {
   state = {
-    homeData: {},
-    products: [],
     prevLocation: '',
-    pages:0,
-    theme: 'black',
-    lang: 'AR',
-    authedUser: null,
   }
 
   componentDidMount = async () => {
     const { prevLocation } = this.state
     const { pathname } = this.props.location
+    const { dispatch } = this.props
     if ( prevLocation !== pathname ) {
       await this.setState({
         prevLocation : pathname
       })
     }
+    if (getToken()) {
+      await dispatch(handleInitialData())
+      this.props.history.push(prevLocation)
+    }
   }
 
   render(){
-    const { homeData, theme, lang, products, pages, prevLocation,authedUser } = this.state
-    console.log(authedUser);
+    const { prevLocation} = this.state
+    const { authedUser } = this.props
     if (!authedUser && authedUser!=="" &&authedUser!== undefined) {
       return (
         <Fragment>
@@ -49,12 +49,17 @@ class App extends Component {
       );
     }
     else {
-      return (
-        <Main.js/>
-      );
+      return <Main/>
     }
   }
 
 }
 
-export default withRouter(connect()(App))
+const mapStateToProps = ({authedUser}) => {
+  return {
+    authedUser,
+    loading : authedUser === null
+  };
+}
+
+export default withRouter(connect(mapStateToProps)(App))

@@ -39,27 +39,29 @@ export default class SalesToday extends Component {
 
   componentDidMount = async () =>{
     const data = await getTodayOrders()
-    const todaySales = data.orders
-    let totalIncome = 0
-    let totalCost = 0
-    let totalQuantity = 0
+    if (data.success) {
+      const todaySales = data.orders
+      let totalIncome = 0
+      let totalCost = 0
+      let totalQuantity = 0
 
-    todaySales.map((item) => {
-      totalIncome += item.total_price
-      totalCost += item.total_cost
-      totalQuantity += item.qty
-      return item;
-    })
+      todaySales.map((item) => {
+        totalIncome += item.total_price
+        totalCost += item.total_cost
+        totalQuantity += item.qty
+        return item;
+      })
 
-    const revenue = totalIncome - totalCost
+      const revenue = totalIncome - totalCost
 
-    await this.setState({
-      todaySales,
-      totalIncome,
-      totalCost,
-      totalQuantity,
-      revenue
-    })
+      return this.setState({
+        todaySales,
+        totalIncome,
+        totalCost,
+        totalQuantity,
+        revenue
+      })
+    }
   }
   render() {
 

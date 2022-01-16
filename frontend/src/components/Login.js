@@ -1,10 +1,8 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { Link, withRouter } from 'react-router-dom'
+import { withRouter } from 'react-router-dom'
 import { handleUserLogin } from '../actions/authedUser'
 import { Button, Form, Grid, Header, Image, Message, Segment } from 'semantic-ui-react'
-import { login, getHomeData } from '../utils/api'
-import { setToken, removeToken } from '../utils/token'
 
 class Login extends React.Component {
 
@@ -50,17 +48,13 @@ class Login extends React.Component {
     const password = this.state.password
     const remember = true
     this.setState({
-      formComplete : false
+      formComplete : false,
+      error: '',
+      showError: false,
     })
-    login(username, password, remember).then(res => {
-      console.log(res);
-      getHomeData().then(res => console.log(res))
-      if (res.success === true) {
-        this.setState({
-          error: '',
-          showError: false,
-        })
-        setToken(res.token)
+    await dispatch(handleUserLogin(username, password, remember))
+    .then(async (res) => {
+      if (res === true) {
         this.props.history.push(prevLocation)
       }
       else {
@@ -68,7 +62,6 @@ class Login extends React.Component {
           error: res.message,
           showError: true,
         })
-        removeToken()
       }
     })
     /*if ( await dispatch(handleUserLogin({username,password,})) ){
@@ -150,12 +143,5 @@ class Login extends React.Component {
   }
 }
 
-const mapStateToProps = ({users, errors}, {prevLocation}) => {
-  return {
-    error : errors.login_error? errors.login_error : null,
-    userIds : Object.keys(users),
-    prevLocation
-  };
-}
 
 export default withRouter(connect()(Login))

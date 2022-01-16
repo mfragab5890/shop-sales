@@ -33,7 +33,6 @@ def create_app(test_config=None):
     def refresh_expiring_jwts(response):
         try:
             exp_timestamp = get_jwt()[ "exp" ]
-            print(get_jwt())
             now = datetime.now(timezone.utc)
             target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
             if target_timestamp > exp_timestamp:
@@ -69,7 +68,7 @@ def create_app(test_config=None):
     # create admin user first time to run the app
     admin_user = User.query.get(1)
     if not admin_user:
-        print('creating new user')
+        print('creating admin user')
         admin = User(
             id=1,
             username='admin',
@@ -77,6 +76,20 @@ def create_app(test_config=None):
             email='m.f.ragab5890@gmail.com'
         )
         admin.insert()
+        print('admin user created')
+
+    # create seller user first time to run the app
+    seller_user = User.query.get(2)
+    if not seller_user:
+        print('creating seller user')
+        seller = User(
+            id=2,
+            username='seller',
+            password_hash=generate_password_hash('sellerSELLER', method='sha256'),
+            email='m.f.ragab581990@gmail.com'
+        )
+        seller.insert()
+        print('seller user created')
 
     # ----------------------------------------------------------------------------#
     # Controllers.
@@ -85,11 +98,13 @@ def create_app(test_config=None):
     @app.route('/', methods=[ 'GET' ])
     @jwt_required()
     def get_home_data():
+        user_id = get_jwt_identity()
         try:
-            user = User.query.get(1)
+            user = User.query.get(user_id)
             return jsonify({
                 'success': True,
-                'message': user.format_no_password(),
+                'message': 'Welcome!' + user.username,
+                'authed_user': user.format_no_password(),
             })
         except Exception as e:
             print(e)
@@ -106,15 +121,18 @@ def create_app(test_config=None):
         # check if the user actually exists
         # take the user-supplied password, hash it, and compare it to the hashed password in the database
         if not user or not check_password_hash(user.password_hash, password):
-            return jsonify({
+            response = jsonify({
                 'success': False,
                 'message': 'Username OR Password Are Not Correct',
             })
+            unset_jwt_cookies(response)
+            return response
         else:
             access_token = create_access_token(identity=user.id)
             response = jsonify({
                 'success': True,
-                'message': 'User LoggedIn Correctly AS: ',
+                'message': 'User LoggedIn Correctly AS: ' + user.username,
+                'authed_user': user.format_no_password(),
                 'token': access_token,
             })
             return response
@@ -190,9 +208,11 @@ def create_app(test_config=None):
             })
 
     @app.route('/logout', methods=[ 'GET' ])
-    @jwt_required()
     def logout():
-        response = jsonify({"msg": "logout successful"})
+        response = jsonify({
+                'success': True,
+                'message': 'logout Successful',
+            })
         unset_jwt_cookies(response)
         return response
 
@@ -252,7 +272,11 @@ def create_app(test_config=None):
                                                                                     False).items
             pages = round(ceil(Products.query.count() / results_per_page))
             products = [ product.format() for product in products_query ]
-            return jsonify({'products': products, 'pages': pages})
+            return jsonify({
+                'success': True,
+                'products': products,
+                'pages': pages,
+            })
         except Exception as e:
             print(e)
             abort(400)
@@ -284,6 +308,7 @@ def create_app(test_config=None):
             if data is not None:
                 products = [ product.format() for product in data ]
                 return jsonify({
+                    'success': True,
                     'products': products,
                 })
             else:
@@ -306,17 +331,22 @@ def create_app(test_config=None):
             abort(400, 'No Product ID Entered')
         else:
             user_product = Products.query.get(product_id)
-            print(user_product)
-            try:
-                user_product.delete()
-
+            if len(user_product.items) > 0:
                 return jsonify({
-                    'success': True,
-                    'message': 'product deleted successfully'
+                    'success': False,
+                    'message': 'product can not be deleted as it is associated with other orders.'
                 })
-            except Exception as e:
-                print(e)
-                abort(422)
+            else:
+                try:
+                    user_product.delete()
+
+                    return jsonify({
+                        'success': True,
+                        'message': 'product deleted successfully'
+                    })
+                except Exception as e:
+                    print(e)
+                    abort(422)
 
     # create new order endpoint. this end point should take:
     # order items, user, total
@@ -393,7 +423,10 @@ def create_app(test_config=None):
                 extract('month', Orders.created_on) == datetime.utcnow().month
             ).order_by(db.desc(Orders.id)).all()
             orders = [ order.format() for order in orders_query ]
-            return jsonify({'orders': orders})
+            return jsonify({
+                'success': True,
+                'orders': orders
+            })
         except Exception as e:
             print(e)
             abort(400)
@@ -411,7 +444,10 @@ def create_app(test_config=None):
                 Orders.created_on <= period_to,
             ).order_by(db.desc(Orders.id)).all()
             orders = [ order.format() for order in orders_query ]
-            return jsonify({'orders': orders})
+            return jsonify({
+                'success': True,
+                'orders': orders
+            })
         except Exception as e:
             print(e)
             abort(400)
@@ -429,7 +465,10 @@ def create_app(test_config=None):
                 extract('day', Orders.created_on) == datetime.utcnow().day
             ).order_by(db.desc(Orders.id)).all()
             orders = [ order.format() for order in orders_query ]
-            return jsonify({'orders': orders})
+            return jsonify({
+                'success': True,
+                'orders': orders
+            })
         except Exception as e:
             print(e)
             abort(400)

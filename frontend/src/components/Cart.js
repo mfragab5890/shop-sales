@@ -32,7 +32,7 @@ export default class Cart extends Component {
     return (
       <div>
         <Image circular size = 'tiny' src='/logoN.jpeg' centered />
-        <Table padded stackable basic='very' size='large'>
+        <Table padded stackable size='large' style={{fontWeight: 'bold',fontFamily: 'Sans-serif'}}>
           <Table.Header>
             <Table.Row>
              <Table.HeaderCell singleLine>{ myScript[lang].item }</Table.HeaderCell>

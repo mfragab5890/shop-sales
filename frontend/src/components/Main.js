@@ -1,5 +1,4 @@
-import React, { Component, Fragment } from 'react'
-import { getHomeData, getAllProducts } from '../utils/api'
+import React, { Component } from 'react'
 import 'semantic-ui-css/semantic.min.css'
 import { Container } from 'semantic-ui-react'
 import AppHeader from './AppHeader'
@@ -7,16 +6,15 @@ import AppBody from './AppBody'
 import AppFooter from './AppFooter'
 import LoadingBar from 'react-redux-loading'
 import { connect } from 'react-redux'
-import { Route, Redirect, withRouter, Switch } from 'react-router-dom'
+import { withRouter} from 'react-router-dom'
+import { handleInitialData } from '../actions/shared'
 import { getToken } from '../utils/token'
 
 class Main extends Component {
   state = {
-    homeData: {},
-    products: [],
-    pages:0,
     theme: 'black',
     lang: 'AR',
+    prevLocation: '',
   }
 
   handleThemeChange = (theme) => {
@@ -47,34 +45,30 @@ class Main extends Component {
     }
 
   }
+
   componentDidMount = async () => {
-    let homeData = null
-    getHomeData()
-    .then(data => {
-      homeData = data
-      console.log(homeData);
-      return this.setState({
-        homeData: homeData,
-        authedUser: getToken(),
-      });
-    })
-    .catch(err => {console.log(err);})
-    const products_obj  = await getAllProducts()
-    const products = products_obj.products
-    const pages = products_obj.pages
-    await this.setState({
-      products: products,
-      pages: pages
-    })
+    const { prevLocation } = this.state
+    const { pathname } = this.props.location
+    const { dispatch, productsLength } = this.props
+    if ( prevLocation !== pathname ) {
+      await this.setState({
+        prevLocation : pathname
+      })
+    }
+    if (productsLength === 0) {
+      if (getToken()) {
+        await dispatch(handleInitialData())
+        this.props.history.push(prevLocation)
+      }
+    }
   }
 
   render(){
-    const { homeData, theme, lang, products, pages } = this.state
+    const { theme, lang } = this.state
     return (
       <Container fluid>
         <LoadingBar />
         <AppHeader
-          data = {homeData}
           theme = {theme}
           lang = {lang}
           onLangChange = {this.handleLangChange}
@@ -83,8 +77,6 @@ class Main extends Component {
         <AppBody
           theme = {theme}
           lang = {lang}
-          products = { products }
-          pages = {pages}
           />
         <AppFooter
           theme = {theme}
@@ -95,4 +87,11 @@ class Main extends Component {
   }
 }
 
-export default withRouter(connect()(Main))
+const mapStateToProps = ({products}) => {
+  console.log(products);
+  return {
+    productsLength: products.products.length
+  };
+}
+
+export default withRouter(connect(mapStateToProps)(Main))

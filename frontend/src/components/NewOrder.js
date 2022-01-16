@@ -293,6 +293,7 @@ export default class NewOrder extends Component {
               onBeforePrint = {() => {
                 this.handleAddOrder();
               }}
+              copyStyles = {false}
               trigger={() => {
                 return <Button color = {theme} attached='bottom' disabled = {total === 0? true : false}>{myScript[lang].btns.print}</Button>;
               }}

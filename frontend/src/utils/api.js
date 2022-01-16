@@ -1,19 +1,23 @@
-import { getToken } from './token'
+import { getToken, setToken, removeToken } from './token'
 const api = process.env.REACT_APP_SHOP_SALES_API_URL || 'http://localhost:5000'
 
 let token = getToken()
-console.log(token);
-const headers = {
+let headers = {
   'Accept': 'application/json',
   'Authorization': 'Bearer ' + token
 }
 
-export const getHomeData = () =>
-  fetch(`${api}/`, { headers })
+export const getInitialData = () =>{
+  const token = getToken()
+  headers.Authorization = 'Bearer ' + token
+  console.log('headers:', headers, 'token:', token);
+  return fetch(`${api}/`, { headers })
     .then(res => res.json())
+}
+
 
 //user APIs
-export const login = (username, password, remember=false) =>
+export const login = (username, password, remember) =>
   fetch(`${api}/login`, {
     method: 'POST',
     headers: {
@@ -25,7 +29,19 @@ export const login = (username, password, remember=false) =>
       password,
       remember,
     }),
-  }).then(res => res.json())
+  }).then(async (res) =>{
+    const data = await res.json()
+    if (data.success === true) {
+      setToken(data.token)
+      token = data.token
+      return data;
+    }
+    else {
+      removeToken()
+      return data;
+    }
+
+   })
 
 export const logout = (username) =>
   fetch(`${api}/logout`, {
@@ -38,6 +54,11 @@ export const logout = (username) =>
       username,
     }),
   }).then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      removeToken()
+    }
+  })
 
 export const saveNewUser = (user) =>
   fetch(`${api}/user/new`, {
@@ -66,7 +87,7 @@ export const addNewProduct = (newProduct) => {
   }).then(res => res.json())
 }
 
-export const getAllProducts = (page=1) =>
+export const getPageProducts = (page=1) =>
   fetch(`${api}/products/all/${page}`, { headers })
     .then(res => res.json())
 

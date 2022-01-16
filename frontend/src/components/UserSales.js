@@ -20,22 +20,25 @@ export default class UserSales extends Component {
 
   componentDidMount = async () =>{
     const data = await getTodayOrders()
-    const todaySales = data.orders
-    let totalIncome = 0
-    let totalQuantity = 0
+    console.log(data);
+    if (data.success) {
+      const todaySales = data.orders
+      let totalIncome = 0
+      let totalQuantity = 0
 
-    todaySales.map((item) => {
-      totalIncome += item.total_price
-      totalQuantity += item.qty
-      return item;
-    })
-
-    await this.setState({
-      todaySales,
-      totalIncome,
-      totalQuantity,
-    })
+      todaySales.map((item) => {
+        totalIncome += item.total_price
+        totalQuantity += item.qty
+        return item;
+      })
+      return this.setState({
+        todaySales,
+        totalIncome,
+        totalQuantity,
+      })
+    }
   }
+
   render() {
 
     const { theme, lang } = this.props

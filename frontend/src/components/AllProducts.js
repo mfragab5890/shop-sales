@@ -1,26 +1,19 @@
 import React, { Component } from 'react'
 import { Segment, Card, Input, Pagination, Message, Header } from 'semantic-ui-react'
-import { getAllProducts, searchProducts } from '../utils/api'
 import ProductView from './ProductView'
+import { connect } from 'react-redux'
+import { handleReceiveProducts } from '../actions/products'
+import { searchProducts } from '../utils/api'
 
-export default class AllProducts extends Component {
+class AllProducts extends Component {
   state = {
     page: 1,
     searchTerm: '',
     loading: false,
-    products:[],
-    pages:0,
     results: [],
     noResults: false
   }
 
-  componentDidMount(){
-    const { pages, products } = this.props
-    this.setState({
-      products: products,
-      pages: pages
-    })
-  }
   onSearchTermChange = (e) => {
     const { value } = e.target
     if (value === '') {
@@ -62,7 +55,8 @@ export default class AllProducts extends Component {
   }
 
   handlePaginationChange = async (e, { activePage }) => {
-    const results  = await getAllProducts(activePage)
+    const { dispatch } = this.props
+    const results  = await dispatch(handleReceiveProducts(activePage))
     await this.setState({
       products: results.products,
       page: activePage
@@ -71,8 +65,8 @@ export default class AllProducts extends Component {
 
   render() {
 
-    const { theme, lang } = this.props
-    const { page, searchTerm, loading, results, products, pages, noResults } = this.state
+    const { theme, lang, products, pages } = this.props
+    const { page, searchTerm, loading, results, noResults } = this.state
     const myScript = {
       EN: {
         header: 'Viewing All Products',
@@ -145,3 +139,11 @@ export default class AllProducts extends Component {
     )
   }
 }
+
+const mapStateToProps = ({products}) => {
+  return {
+    ...products
+  };
+}
+
+export default connect(mapStateToProps)(AllProducts)

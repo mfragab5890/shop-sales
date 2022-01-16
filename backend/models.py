@@ -8,7 +8,7 @@ import base64
 # Declare database name
 from sqlalchemy import func
 
-database_name = "furry-test"
+database_name = "fiori"
 
 # intiate db with no assigment
 db = SQLAlchemy()
@@ -32,7 +32,9 @@ class User(db.Model):
     username = db.Column(db.String, nullable=False, unique=True)
     email = db.Column(db.String, nullable=False, unique=True)
     password_hash = db.Column(db.String(128), nullable=False)
-    permissions = db.relationship('UserPermissions', backref='user_permissions', lazy=True,
+    permissions = db.relationship('UserPermissions', foreign_keys='UserPermissions.user_id', backref='user_permissions', lazy=True,
+                                  cascade="all, delete-orphan")
+    created_permissions = db.relationship('UserPermissions', foreign_keys='UserPermissions.created_by', backref='user_created_permissions', lazy=True,
                                   cascade="all, delete-orphan")
     products = db.relationship('Products', backref='user_products', lazy=True,
                                cascade="all, delete-orphan")
@@ -69,6 +71,7 @@ class User(db.Model):
             'id': self.id,
             'username': self.username,
             'email': self.email,
+            'permissions': [ permission.format() for permission in self.permissions ],
             'products': [ product.format() for product in self.products ],
             'orders': [ order.format() for order in self.orders ],
 
@@ -109,8 +112,9 @@ class UserPermissions(db.Model):
     __tablename__ = 'user_permissions'
 
     id = db.Column(db.Integer, primary_key=True)
-    users_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     permission_id = db.Column(db.Integer, db.ForeignKey('permissions.id'), nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET DEFAULT'), nullable=False, default=1)
 
     def __init__(self, user_id, permission_id):
         self.user_id = user_id
@@ -146,7 +150,7 @@ class Products(db.Model):
     qty = db.Column(db.Integer, default=0)
     sell_price = db.Column(db.Integer, nullable=False)
     buy_price = db.Column(db.Integer, nullable=False)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, default=1)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET DEFAULT'), nullable=False, default=1)
     mini = db.Column(db.Integer, default=0)
     maxi = db.Column(db.Integer)
     sold = db.Column(db.Integer, default=0)
@@ -205,7 +209,7 @@ class Orders(db.Model):
     qty = db.Column(db.Integer, default=0)
     total_price = db.Column(db.Integer, nullable=False)
     total_cost = db.Column(db.Integer, nullable=False)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, default=1)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET DEFAULT'), nullable=False, default=1)
     created_on = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow)
     items = db.relationship('OrderItems', backref='order_items', lazy=True, cascade="all, delete-orphan")
 
@@ -247,7 +251,7 @@ class OrderItems(db.Model):
     total_price = db.Column(db.Integer, nullable=False)
     total_cost = db.Column(db.Integer, nullable=False)
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
 
     def __init__(self, qty, total_price, total_cost, order_id, product_id):
         self.qty = qty
