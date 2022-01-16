@@ -32,10 +32,12 @@ class User(db.Model):
     username = db.Column(db.String, nullable=False, unique=True)
     email = db.Column(db.String, nullable=False, unique=True)
     password_hash = db.Column(db.String(128), nullable=False)
-    permissions = db.relationship('UserPermissions', foreign_keys='UserPermissions.user_id', backref='user_permissions', lazy=True,
+    permissions = db.relationship('UserPermissions', foreign_keys='UserPermissions.user_id', backref='user_permissions',
+                                  lazy=True,
                                   cascade="all, delete-orphan")
-    created_permissions = db.relationship('UserPermissions', foreign_keys='UserPermissions.created_by', backref='user_created_permissions', lazy=True,
-                                  cascade="all, delete-orphan")
+    created_permissions = db.relationship('UserPermissions', foreign_keys='UserPermissions.created_by',
+                                          backref='user_created_permissions', lazy=True,
+                                          cascade="all, delete-orphan")
     products = db.relationship('Products', backref='user_products', lazy=True,
                                cascade="all, delete-orphan")
     orders = db.relationship('Orders', backref='user_orders', lazy=True,
@@ -74,6 +76,7 @@ class User(db.Model):
             'permissions': [ permission.format() for permission in self.permissions ],
             'products': [ product.format() for product in self.products ],
             'orders': [ order.format() for order in self.orders ],
+            'createdPermissions': [ permission.format() for permission in self.created_permissions ],
 
         }
 
