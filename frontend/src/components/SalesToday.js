@@ -1,13 +1,18 @@
 import React, { Component } from 'react'
-import { Button, Header, Icon, Modal, Segment, Item, Step, Statistic} from 'semantic-ui-react'
-import { getTodayOrders } from '../utils/api'
+import { Button, Header, Icon, Modal, Segment, Item, Step, Statistic, Message} from 'semantic-ui-react'
 import ReceiptView from './ReceiptView'
-import { deleteOrder } from '../utils/api'
+import { handleDeleteOrder } from '../actions/orders'
+import { connect } from 'react-redux'
 
-export default class SalesToday extends Component {
+class SalesToday extends Component {
   state = {
     orderId: '',
-    todaySales: []
+    totalIncome: 0,
+    totalCost: 0,
+    totalQuantity: 0,
+    revenue: 0,
+    message: '',
+    success:true,
   }
   setOpen = (value) => {
     this.setState({
@@ -20,16 +25,26 @@ export default class SalesToday extends Component {
   }
 
   handleRemoveOrder = async (orderId) => {
-    const { lang } = this.props
+    const { lang, dispatch } = this.props
     const message = lang === 'EN'
       ? `Are You Sure You Want To Delete Order Number ${orderId}`
       : `هل انت متاكد انك تريد حذف عملية البيع رقم ${orderId}`
     if (window.confirm(message)) {
-      await deleteOrder(orderId).then(res => {
-        this.setState({
-          message: res.message,
-          orderId: ''
-        })
+      await dispatch(handleDeleteOrder(orderId)).then(res => {
+        if (res.success === true) {
+          this.setState({
+            message: res.message,
+            success: true,
+            orderId: ''
+          })
+        }
+        else {
+          this.setState({
+            message: res.message,
+            success: false,
+            orderId: ''
+          })
+        }
         setTimeout(() => this.setState({
           message: ''
         }), 3000)
@@ -37,36 +52,38 @@ export default class SalesToday extends Component {
     }
   }
 
-  componentDidMount = async () =>{
-    const data = await getTodayOrders()
-    if (data.success) {
-      const todaySales = data.orders
-      let totalIncome = 0
-      let totalCost = 0
-      let totalQuantity = 0
+  updateStats = () => {
+    const { todaySales } = this.props
+    let totalIncome = 0
+    let totalCost = 0
+    let totalQuantity = 0
 
-      todaySales.map((item) => {
-        totalIncome += item.total_price
-        totalCost += item.total_cost
-        totalQuantity += item.qty
-        return item;
-      })
+    todaySales.map((item) => {
+      totalIncome += item.total_price
+      totalCost += item.total_cost
+      totalQuantity += item.qty
+      return item;
+    })
 
-      const revenue = totalIncome - totalCost
+    const revenue = totalIncome - totalCost
 
-      return this.setState({
-        todaySales,
-        totalIncome,
-        totalCost,
-        totalQuantity,
-        revenue
-      })
-    }
+    return this.setState({
+      todaySales,
+      totalIncome,
+      totalCost,
+      totalQuantity,
+      revenue
+    })
   }
+
+  componentDidMount = () =>{
+    this.updateStats()
+  }
+
   render() {
 
-    const { theme, lang } = this.props
-    const { orderId, todaySales, totalIncome, totalCost, totalQuantity, revenue } = this.state
+    const { theme, lang, todaySales } = this.props
+    const { orderId, totalIncome, totalCost, totalQuantity, revenue, message, success } = this.state
     const myScript = {
       EN: {
         totalIncome : 'Total Income',
@@ -139,6 +156,14 @@ export default class SalesToday extends Component {
         </Segment>
         <Segment>
           <Header as = 'h1'>{myScript[lang].details}:</Header>
+            {
+              message !== '' &&
+              <Message
+                success = {success}
+                header='success'
+                content= {message}
+              />
+            }
           {
             todaySales.map((order) => (
               <Item.Group key = {order.id}>
@@ -224,3 +249,11 @@ export default class SalesToday extends Component {
     )
   }
   }
+
+  const mapStateToProps = ({orders}) => {
+    return {
+      todaySales: orders.todaySales
+    };
+  }
+
+  export default connect(mapStateToProps)(SalesToday)

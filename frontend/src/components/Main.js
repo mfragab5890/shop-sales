@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import 'semantic-ui-css/semantic.min.css'
-import { Container } from 'semantic-ui-react'
+import { Container, Segment, Dimmer, Loader, Image } from 'semantic-ui-react'
 import AppHeader from './AppHeader'
 import AppBody from './AppBody'
 import AppFooter from './AppFooter'
@@ -15,6 +15,7 @@ class Main extends Component {
     theme: 'black',
     lang: 'AR',
     prevLocation: '',
+    loading: false,
   }
 
   handleThemeChange = (theme) => {
@@ -52,19 +53,36 @@ class Main extends Component {
     const { dispatch, productsLength } = this.props
     if ( prevLocation !== pathname ) {
       await this.setState({
-        prevLocation : pathname
+        prevLocation : pathname,
+        loading:true
       })
     }
     if (productsLength === 0) {
       if (getToken()) {
         await dispatch(handleInitialData())
-        this.props.history.push(prevLocation)
+        await this.setState({
+          loading:false
+        })
+        return this.props.history.push(prevLocation)
       }
     }
+    await this.setState({
+      loading:false
+    })
   }
 
   render(){
-    const { theme, lang } = this.state
+    const { theme, lang, loading } = this.state
+    if (loading) {
+      return (
+        <Segment>
+          <Dimmer active>
+            <Loader indeterminate>Preparing Data</Loader>
+          </Dimmer>
+          <Image src='/shopn.jpg' />
+        </Segment>
+      )
+    }
     return (
       <Container fluid>
         <LoadingBar />

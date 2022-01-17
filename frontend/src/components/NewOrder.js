@@ -1,10 +1,11 @@
 import React, { Component } from 'react'
-import { Grid, Image, Input, Button, List, Message } from 'semantic-ui-react'
-import { getProductById, addNewOrder, searchProducts } from '../utils/api'
-import ReactToPrint from 'react-to-print';
-import Cart from './Cart'
+import { Grid, Image, Input, List, Message } from 'semantic-ui-react'
+import { getProductById, searchProducts } from '../utils/api'
+import { handleAddOrder } from '../actions/orders'
+import CartToPrint from './CartToPrint'
+import { connect } from 'react-redux'
 
-export default class NewOrder extends Component {
+class NewOrder extends Component {
   state = {
     barcode : '',
     searchTerm : '',
@@ -17,6 +18,7 @@ export default class NewOrder extends Component {
     totalQuantity: 0,
     results : [],
     noResults: false,
+    printing: false,
   }
 
   onBarcodeChange = (e) => {
@@ -196,13 +198,38 @@ export default class NewOrder extends Component {
     await this.updateTotal()
 
   }
+
+  clearCart = async () => {
+    await this.setState({
+      cartItems : [],
+      cartIds : [],
+      total : 0,
+      totalCost : 0,
+      totalQuantity: 0,
+    })
+  }
+
   handleAddOrder = () => {
+    this.setState({
+      printing: true,
+    })
     const { cartItems, total, totalCost, totalQuantity } = this.state
-    addNewOrder({
+    const { lang, dispatch } = this.props
+    dispatch(handleAddOrder({
       cartItems,
       total,
       totalCost,
       totalQuantity
+    })).then(res => console.log(res))
+
+    const message = lang === 'EN'
+      ? `Do You Want To Clear The Cart After Printing?`
+      : `هل تريد افراغ محتويات الفاتورة بعد الطباعة؟`
+    if (window.confirm(message)) {
+      this.clearCart()
+    }
+    this.setState({
+      printing:false,
     })
   }
 
@@ -213,7 +240,7 @@ export default class NewOrder extends Component {
   render() {
 
     const { theme, lang } = this.props
-    const { barcode, searchTerm, cartItems, total, totalQuantity, loading, results, noResults } = this.state
+    const { barcode, searchTerm, cartItems, total, totalQuantity, loading, results, noResults, printing } = this.state
     const myScript = {
       EN:{
         item: 'Item',
@@ -280,7 +307,7 @@ export default class NewOrder extends Component {
         </Grid.Row>
         <Grid.Row>
           <Grid.Column width={8}>
-            <Cart
+            <CartToPrint
               lang = {lang}
               theme = {theme}
               cartItems = {cartItems}
@@ -288,17 +315,10 @@ export default class NewOrder extends Component {
               totalQuantity = {totalQuantity}
               ref = {(el) => this.cartRef = el}
               handleEditQuantity = { this.handleEditQuantity }
-            />
-            <ReactToPrint
-              onBeforePrint = {() => {
-                this.handleAddOrder();
-              }}
-              copyStyles = {false}
-              trigger={() => {
-                return <Button color = {theme} attached='bottom' disabled = {total === 0? true : false}>{myScript[lang].btns.print}</Button>;
-              }}
-              content={() => this.cartRef }
-            />
+              printing = {printing}
+              handleAddOrder = {this.handleAddOrder}
+              myScript = {myScript[lang].btns.print}
+              />
           </Grid.Column>
           <Grid.Column width={8}>
             {
@@ -334,3 +354,5 @@ export default class NewOrder extends Component {
     )
   }
 }
+
+export default connect()(NewOrder)

@@ -1,10 +1,11 @@
 import React, { Component } from 'react'
-import { Segment, Button, Form, Header, Card, Image, Message } from 'semantic-ui-react'
+import { Segment, Form, Header, Card, Image, Message } from 'semantic-ui-react'
 import bwipjs from 'bwip-js'
-import { addNewProduct } from '../utils/api'
-import ReactToPrint from 'react-to-print';
+import { handleAddProduct } from '../actions/products'
+import { connect } from 'react-redux'
+import BarcodeToPrint from './BarcodeToPrint'
 
-export default class NewProduct extends Component {
+class NewProduct extends Component {
   state = {
     myScript: {
       EN: {
@@ -157,7 +158,7 @@ export default class NewProduct extends Component {
 
   }
 
-  handleAddProduct = (e) => {
+  handleNewProduct = (e) => {
     e.preventDefault()
     const { name, description, buyingPrice, sellingPrice, quantity, minimum, maximum, image } = this.state
     if (name === '') {
@@ -205,8 +206,8 @@ export default class NewProduct extends Component {
       maximum,
       image: image.split(',')[1]
     }
-
-    addNewProduct(newProduct).then(async (value) => {
+    const {dispatch} = this.props
+    dispatch(handleAddProduct(newProduct)).then(async (value) => {
       await this.setState({
         product: value.newProduct,
       })
@@ -348,7 +349,7 @@ export default class NewProduct extends Component {
           <Form.Button
             content={myScript[lang].btns.submit}
             attached='bottom'
-            onClick = {this.handleAddProduct}
+            onClick = {this.handleNewProduct}
           />
             <Message
               error
@@ -362,17 +363,9 @@ export default class NewProduct extends Component {
           product &&
           <Segment textAlign = 'center'>
             <Card color={theme} centered>
-              <div style = {{justifyContent:'center', alignItems: 'center'}} ref={el => (this.barcodeRef = el)}>
-                <img alt = 'barcode' src={barcodeImage} className="ui centered spaced image" />
-                <br/>
-                <br/>
-                <img alt = 'barcode' src={barcodeImage} className="ui centered spaced image" />
-              </div>
-              <ReactToPrint
-                trigger={() => {
-                  return <Button color = {theme} compact attached='bottom'>{myScript[lang].btns.print}</Button>;
-                }}
-                content={() => this.barcodeRef}
+              <BarcodeToPrint
+                theme = {theme}
+                barcodeImage = {barcodeImage}
               />
             </Card>
             <Card color={theme} centered>
@@ -394,3 +387,5 @@ export default class NewProduct extends Component {
     )
   }
 }
+
+export default connect()(NewProduct)

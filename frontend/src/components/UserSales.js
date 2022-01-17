@@ -1,12 +1,16 @@
 import React, { Component } from 'react'
 import { Button, Header, Icon, Modal, Segment, Item, Step, Statistic} from 'semantic-ui-react'
-import { getTodayOrders } from '../utils/api'
 import ReceiptView from './ReceiptView'
+import { connect } from 'react-redux'
 
-export default class UserSales extends Component {
+class UserSales extends Component {
   state = {
     orderId: '',
-    todaySales: []
+    totalIncome: 0,
+    totalCost: 0,
+    totalQuantity: 0,
+    revenue: 0,
+    message: ''
   }
   setOpen = (value) => {
     this.setState({
@@ -14,35 +18,29 @@ export default class UserSales extends Component {
       })
   }
 
-  handleEditQuantity = async (quantity, id) => {
-
-  }
 
   componentDidMount = async () =>{
-    const data = await getTodayOrders()
-    console.log(data);
-    if (data.success) {
-      const todaySales = data.orders
-      let totalIncome = 0
-      let totalQuantity = 0
+    const { todaySales } = this.props
+    let totalIncome = 0
+    let totalQuantity = 0
 
-      todaySales.map((item) => {
-        totalIncome += item.total_price
-        totalQuantity += item.qty
-        return item;
-      })
-      return this.setState({
-        todaySales,
-        totalIncome,
-        totalQuantity,
-      })
-    }
+    todaySales.map((item) => {
+      totalIncome += item.total_price
+      totalQuantity += item.qty
+      return item;
+    })
+    return this.setState({
+      todaySales,
+      totalIncome,
+      totalQuantity,
+    })
+
   }
 
   render() {
 
-    const { theme, lang } = this.props
-    const { orderId, todaySales, totalIncome, totalQuantity } = this.state
+    const { theme, lang, todaySales } = this.props
+    const { orderId, totalIncome, totalQuantity } = this.state
     const myScript = {
       EN: {
         totalIncome : 'Total Income',
@@ -157,3 +155,11 @@ export default class UserSales extends Component {
     )
   }
 }
+
+const mapStateToProps = ({orders}) => {
+  return {
+    todaySales: orders.userTodaySales
+  };
+}
+
+export default connect(mapStateToProps)(UserSales)

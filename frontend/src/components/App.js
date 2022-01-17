@@ -1,5 +1,6 @@
 import React, { Component, Fragment } from 'react'
 import 'semantic-ui-css/semantic.min.css'
+import { Segment, Image, Dimmer, Loader } from 'semantic-ui-react'
 import LoadingBar from 'react-redux-loading'
 import { connect } from 'react-redux'
 import { Route, Redirect, withRouter} from 'react-router-dom'
@@ -12,6 +13,7 @@ import SignUp from './SignUp'
 class App extends Component {
   state = {
     prevLocation: '',
+    loading: false
   }
 
   componentDidMount = async () => {
@@ -20,18 +22,35 @@ class App extends Component {
     const { dispatch } = this.props
     if ( prevLocation !== pathname ) {
       await this.setState({
-        prevLocation : pathname
+        prevLocation : pathname,
+        loading: true
       })
     }
     if (getToken()) {
       await dispatch(handleInitialData())
-      this.props.history.push(prevLocation)
+      await this.setState({
+        loading: false,
+      })
+      return this.props.history.push(prevLocation)
     }
+    await this.setState({
+      loading: false
+    })
   }
 
   render(){
-    const { prevLocation} = this.state
+    const { prevLocation, loading} = this.state
     const { authedUser } = this.props
+    if (loading) {
+      return (
+        <Segment>
+          <Dimmer active>
+            <Loader indeterminate>Preparing Data</Loader>
+          </Dimmer>
+          <Image src='/shopn.jpg' />
+        </Segment>
+      )
+    }
     if (!authedUser && authedUser!=="" &&authedUser!== undefined) {
       return (
         <Fragment>

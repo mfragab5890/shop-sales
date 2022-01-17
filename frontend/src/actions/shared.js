@@ -1,5 +1,4 @@
 import { getInitialData, getTodayOrders, getMonthOrders, getPageProducts } from '../utils/api'
-import { receiveUsers } from '../actions/users'
 import { receiveProducts } from '../actions/products'
 import { receiveMonthOrders, receiveTodayOrders, receiveUserTodayOrders } from '../actions/orders'
 import { setAuthedUser} from '../actions/authedUser'

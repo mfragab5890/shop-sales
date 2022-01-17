@@ -10,15 +10,32 @@ const products = (state = {products:[], pages:0 }, action) => {
     }
     case ADD_PRODUCT: {
       const {product} = action
-      return state
+      return {
+        ...state,
+        products: [product].concat(state.products),
+      }
     }
     case DELETE_PRODUCT: {
       const {productId} = action
-      return state
+      return {
+        ...state,
+        products: state.products.filter((item) => item.id !== productId),
+      }
     }
     case EDIT_PRODUCT: {
       const {product} = action
-      return state
+      const products= state.products.map((item) => {
+        if (item.id === product.id) {
+          return product;
+        }
+        else {
+          return item;
+        }
+      })
+      return {
+        ...state,
+        products
+      }
     }
     default: {
       return state;

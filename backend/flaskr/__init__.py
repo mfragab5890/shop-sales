@@ -90,6 +90,8 @@ def create_app(test_config=None):
         )
         seller.insert()
         print('seller user created')
+    # create App permissions
+    
 
     # ----------------------------------------------------------------------------#
     # Controllers.
@@ -285,7 +287,7 @@ def create_app(test_config=None):
     @jwt_required()
     def search_products_id(product_id):
         try:
-            data = Products.query.filter(Products.id == product_id).first()
+            data = Products.query.get(product_id)
             if data is not None:
                 product = data.format()
                 return jsonify(product)
@@ -303,8 +305,10 @@ def create_app(test_config=None):
     @jwt_required()
     def search_products_string(search_term):
         try:
-            data = Products.query.filter(or_(Products.name.ilike('%' + search_term + '%'),
-                                             Products.description.ilike('%' + search_term + '%'))).all()
+            data = Products.query.filter(or_(
+                Products.name.ilike('%' + search_term + '%'),
+                Products.description.ilike('%' + search_term + '%')))\
+                .order_by(db.desc(Products.id)).all()
             if data is not None:
                 products = [ product.format() for product in data ]
                 return jsonify({
@@ -373,7 +377,6 @@ def create_app(test_config=None):
             # get new list id
             user_order = Orders.query.order_by(db.desc(Orders.id)).first()
             for item in cart_items:
-                print(item)
                 qty = int(item[ 'quantity' ])
                 total_price = int(item[ 'total' ])
                 total_cost = int(item[ 'totalCost' ])
@@ -406,7 +409,8 @@ def create_app(test_config=None):
 
             return jsonify({
                 'success': True,
-                'message': 'Order Added successfully'
+                'message': 'Order Added successfully',
+                'order': user_order.format(),
             })
         except Exception as e:
             print(e)
@@ -439,6 +443,7 @@ def create_app(test_config=None):
             body = request.get_json()
             period_from = body.get('periodFrom', 0)
             period_to = body.get('periodTo', 0)
+            period_to += ' 23:59:59.99999'
             orders_query = Orders.query.filter(
                 Orders.created_on >= period_from,
                 Orders.created_on <= period_to,

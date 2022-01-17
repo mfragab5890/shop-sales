@@ -1,10 +1,11 @@
 import React, { Component } from 'react'
 import { Segment, Image, Card, Button, Accordion, Icon, Message, List } from 'semantic-ui-react'
 import bwipjs from 'bwip-js'
-import ReactToPrint from 'react-to-print';
-import { deleteProduct } from '../utils/api'
+import { handleDeleteProduct } from '../actions/products'
+import { connect } from 'react-redux'
+import BarcodeToPrint from './BarcodeToPrint'
 
-export default class ProductView extends Component {
+class ProductView extends Component {
   state = {
     barcodeImage : '',
     activeIndex: 1,
@@ -46,17 +47,14 @@ export default class ProductView extends Component {
   }
 
   handleRemoveProduct = async (productId) => {
-    const { lang } = this.props
+    const { lang, dispatch, confirmDelete } = this.props
     const message = lang === 'EN'
       ? `Are You Sure You Want To Delete Product Number ${productId}`
       : `هل انت متاكد انك تريد حذف المنتج رقم ${productId}`
     if (window.confirm(message)) {
-      await deleteProduct(productId).then(res => {
+      await dispatch(handleDeleteProduct(productId)).then(res => {
         if (res.success === true) {
-          this.setState({
-            message: res.message,
-            success: true
-          })
+          confirmDelete(productId, res.message)
         }
         else {
           this.setState({
@@ -67,7 +65,7 @@ export default class ProductView extends Component {
 
         setTimeout(() => this.setState({
           message: ''
-        }), 3000)
+        }), 5000)
       })
     }
   }
@@ -180,17 +178,9 @@ export default class ProductView extends Component {
               </List>
               <Segment textAlign = 'center'>
                 <canvas id={product.name.replace(/\s/g, '') +'_'+ product.id} style={{padding:'3px', margin: '3px', display: 'none'}}  ref={el => (this.canavasRef = el)} />
-                <div ref={el => (this.barcodeRef = el)}>
-                  <img alt = 'barcode' src={barcodeImage} className="ui centered spaced image" />
-                  <br/>
-                  <br/>
-                  <img alt = 'barcode' src={barcodeImage} className="ui centered spaced image" />
-                </div>
-                <ReactToPrint
-                  trigger={() => {
-                    return <Button color = {theme} icon='print' attached='bottom'></Button>;
-                  }}
-                  content={() => this.barcodeRef}
+                <BarcodeToPrint
+                  theme = {theme}
+                  barcodeImage = {barcodeImage}
                 />
               </Segment>
             </Accordion.Content>
@@ -211,3 +201,5 @@ export default class ProductView extends Component {
     )
   }
 }
+
+export default connect()(ProductView)

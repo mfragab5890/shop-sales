@@ -1,3 +1,6 @@
+import { showLoading, hideLoading } from 'react-redux-loading'
+import { addNewOrder, deleteOrder } from '../utils/api'
+
 //handle orders action creator
 export const RECEIVE_TODAY_ORDERS = 'RECEIVE_TODAY_ORDERS'
 export const RECEIVE_MONTH_ORDERS = 'RECEIVE_MONTH_ORDERS'
@@ -34,7 +37,7 @@ export const addOrder = (order) => {
   };
 }
 
-export const deleteOrder = (orderId) => {
+export const removeOrder = (orderId) => {
   return {
     type : DELETE_ORDER,
     orderId,
@@ -45,5 +48,53 @@ export const editOrder = (order) => {
   return {
     type : EDIT_ORDER,
     order,
+  };
+}
+
+export const handleAddOrder = (order) => {
+  return (dispatch) => {
+    dispatch(showLoading())
+    let orderId = null
+    return addNewOrder(order)
+      .then((data) => {
+        if (data.success === true) {
+          const {order} = data
+          orderId = order.id
+          dispatch(addOrder(order))
+          dispatch(hideLoading())
+          return true;
+        }
+        else {
+          dispatch(hideLoading())
+          return data;
+        }
+      }).catch(err => {
+        console.warn('Add Order Error: ' , err);
+        dispatch(removeOrder(orderId))
+        dispatch(hideLoading())
+        return err;
+      })
+  };
+}
+
+export const handleDeleteOrder = (orderId) => {
+  return (dispatch) => {
+    dispatch(showLoading())
+    return deleteOrder(orderId)
+      .then((data) => {
+        if (data.success === true) {
+          dispatch(removeOrder(orderId))
+          dispatch(hideLoading())
+          return data;
+        }
+        else {
+          dispatch(hideLoading())
+          return data;
+        }
+      }).catch(err => {
+        console.warn('Remove Order Error: ' , err);
+        dispatch(hideLoading())
+        return err;
+      })
   };
 }

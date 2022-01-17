@@ -99,7 +99,7 @@ export const searchProducts = (searchTerm) =>
   fetch(`${api}/products/search/${searchTerm}`, { headers })
     .then(res => res.json())
 
-export const deleteProduct = (productId) =>
+export const removeProduct = (productId) =>
 fetch(`${api}/products/delete/${productId}`, {
     method: 'DELETE',
     headers: {
@@ -123,14 +123,6 @@ export const addNewOrder = (newOrder) => {
   }).then(res => res.json())
 }
 
-export const getTodayOrders = () =>
-  fetch(`${api}/sales/today`, { headers })
-    .then(res => res.json())
-
-export const getMonthOrders = () =>
-  fetch(`${api}/sales/month`, { headers })
-    .then(res => res.json())
-
 export const deleteOrder = (orderId) =>
   fetch(`${api}/orders/delete/${orderId}`, {
     method: 'DELETE',
@@ -139,6 +131,14 @@ export const deleteOrder = (orderId) =>
       'Content-Type': 'application/json',
     },
   }).then(res => res.json())
+
+export const getTodayOrders = () =>
+  fetch(`${api}/sales/today`, { headers })
+    .then(res => res.json())
+
+export const getMonthOrders = () =>
+  fetch(`${api}/sales/month`, { headers })
+    .then(res => res.json())
 
 export const getPeriodOrders = (periodFrom, periodTo) =>
   fetch(`${api}/sales/period`, {

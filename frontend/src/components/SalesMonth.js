@@ -1,10 +1,10 @@
 import React, { Component } from 'react'
 import { Button, Header, Icon, Modal, Segment, Item, Step, Statistic, Message} from 'semantic-ui-react'
-import { getMonthOrders } from '../utils/api'
 import ReceiptView from './ReceiptView'
-import { deleteOrder } from '../utils/api'
+import { handleDeleteOrder } from '../actions/orders'
+import { connect } from 'react-redux'
 
-export default class SalesMonth extends Component {
+class SalesMonth extends Component {
   state = {
     orderId: '',
     monthSales: [],
@@ -30,12 +30,12 @@ export default class SalesMonth extends Component {
   }
 
   handleRemoveOrder = async (orderId) => {
-    const { lang } = this.props
+    const { lang, dispatch } = this.props
     const message = lang === 'EN'
       ? `Are You Sure You Want To Delete Order Number ${orderId}`
       : `هل انت متاكد انك تريد حذف عملية البيع رقم ${orderId}`
     if (window.confirm(message)) {
-      await deleteOrder(orderId).then(res => {
+      await dispatch(handleDeleteOrder(orderId)).then(res => {
         if (res.success === true) {
           this.setState({
             message: res.message,
@@ -53,37 +53,40 @@ export default class SalesMonth extends Component {
         setTimeout(() => this.setState({
           message: ''
         }), 3000)
+        this.updateStats()
       })
     }
+  }
+
+  updateStats = () => {
+    const { monthSales } = this.props
+    let totalIncome = 0
+    let totalCost = 0
+    let totalQuantity = 0
+
+    monthSales.map((item) => {
+      totalIncome += item.total_price
+      totalCost += item.total_cost
+      totalQuantity += item.qty
+      return item;
+    })
+
+    const revenue = totalIncome - totalCost
+
+    return this.setState({
+      monthSales,
+      totalIncome,
+      totalCost,
+      totalQuantity,
+      revenue
+    })
   }
 
   componentDidMount = async () =>{
-    const data = await getMonthOrders()
-    if (data.success) {
-      const monthSales = data.orders
-      let totalIncome = 0
-      let totalCost = 0
-      let totalQuantity = 0
-
-      monthSales.map((item) => {
-        totalIncome += item.total_price
-        totalCost += item.total_cost
-        totalQuantity += item.qty
-        return item;
-      })
-
-      const revenue = totalIncome - totalCost
-
-      return this.setState({
-        monthSales,
-        totalIncome,
-        totalCost,
-        totalQuantity,
-        revenue
-      })
-    }
+    this.updateStats()
 
   }
+
   render() {
 
     const { theme, lang } = this.props
@@ -253,3 +256,11 @@ export default class SalesMonth extends Component {
     )
   }
 }
+
+const mapStateToProps = ({orders}) => {
+  return {
+    monthSales: orders.monthSales
+  };
+}
+
+export default connect(mapStateToProps)(SalesMonth)
