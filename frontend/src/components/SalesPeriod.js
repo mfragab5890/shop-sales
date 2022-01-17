@@ -188,7 +188,7 @@ export default class SalesPeriod extends Component {
     return (
       <Segment.Group>
         <Segment inverted>
-        <Grid>
+        <Grid stackable columns={3}>
           <Grid.Row stretched>
             <Grid.Column floated='left' width={5}>
               <Input fluid inverted label = {myScript[lang].periodFrom} type = {'date'} max = {today} value = {periodFrom} name = 'from' onChange = {this.handleDateChange}/>

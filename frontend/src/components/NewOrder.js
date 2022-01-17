@@ -279,7 +279,7 @@ class NewOrder extends Component {
       }
     }
     return (
-      <Grid celled='internally'>
+      <Grid stackable columns={2} celled='internally'>
         <Grid.Row>
           <Grid.Column width={8}>
             <Input

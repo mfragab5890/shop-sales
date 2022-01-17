@@ -148,7 +148,7 @@ class AllProducts extends Component {
             </Message>
           )
           : (
-            <Card.Group itemsPerRow={3}>
+            <Card.Group centered>
               {
                 results.length > 0
                 ? results.map((product) =>
