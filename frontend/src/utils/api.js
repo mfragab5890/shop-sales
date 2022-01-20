@@ -10,7 +10,6 @@ let headers = {
 export const getInitialData = () =>{
   const token = getToken()
   headers.Authorization = 'Bearer ' + token
-  console.log('headers:', headers, 'token:', token);
   return fetch(`${api}/`, { headers })
     .then(res => res.json())
 }

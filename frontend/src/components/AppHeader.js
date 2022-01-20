@@ -125,7 +125,6 @@ export default class AppHeader extends React.Component {
                   </Dropdown.Menu>
                 </Dropdown>
                 <span onClick = {(e) => {
-                    console.log(e);
                     removeToken()}}>{lang === 'EN' ? 'Logged in as': 'المستخدم' } Mostafa fouad</span>
               </Header>
 

@@ -220,7 +220,7 @@ class NewOrder extends Component {
       total,
       totalCost,
       totalQuantity
-    })).then(res => console.log(res))
+    }))
 
     const message = lang === 'EN'
       ? `Do You Want To Clear The Cart After Printing?`

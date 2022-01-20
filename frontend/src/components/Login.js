@@ -2,7 +2,9 @@ import React from 'react'
 import { connect } from 'react-redux'
 import { withRouter } from 'react-router-dom'
 import { handleUserLogin } from '../actions/authedUser'
-import { Button, Form, Grid, Header, Image, Message, Segment } from 'semantic-ui-react'
+import { Button, Form, Grid, Header, Image, Message, Segment, Dimmer, Loader } from 'semantic-ui-react'
+import { handleInitialData } from '../actions/shared'
+import { getToken } from '../utils/token'
 
 class Login extends React.Component {
 
@@ -12,6 +14,7 @@ class Login extends React.Component {
     formComplete : false,
     showError : false,
     error: '',
+    loading: true,
   }
 
   handleFormData = async (e) => {
@@ -44,6 +47,7 @@ class Login extends React.Component {
   handleFormSubmit = async(e) => {
     e.preventDefault()
     const { dispatch, prevLocation } = this.props
+    console.log('login location', prevLocation);
     const username = this.state.username
     const password = this.state.password
     const remember = true
@@ -86,12 +90,39 @@ class Login extends React.Component {
       })
     }
   }
+
+  checkUserLoggedin = async() => {
+    const { dispatch } = this.props
+    const { prevLocation } = this.state
+    if (getToken()) {
+      await dispatch(handleInitialData())
+      return this.props.history.push(prevLocation)
+    }
+    await this.setState({
+      loading: false
+    })
+  }
+
   componentDidUpdate(){
     this.checkAutoFormComplete()
   }
+  componentDidMount(){
+    console.log('mounted');
+    this.checkUserLoggedin()
+  }
 
   render(){
-    const { formComplete, username, password, showError, error } = this.state
+    const { formComplete, username, password, showError, error, loading } = this.state
+    if (loading) {
+      return (
+        <Segment style = {{width:'100%'}}>
+          <Dimmer active style = {{width:'100%'}}>
+            <Loader indeterminate  style = {{width:'100%'}}>Preparing Data</Loader>
+          </Dimmer>
+          <Image src='/shopn.jpg' style = {{width:'100%'}}/>
+        </Segment>
+      )
+    }
     return (
       <Grid container textAlign='center' style={{ height: '100vh', width:'100vw', padding: 0,margin: 0}} verticalAlign='middle' columns={3} divided>
 

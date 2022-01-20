@@ -3,11 +3,11 @@ import { receiveProducts } from '../actions/products'
 import { receiveMonthOrders, receiveTodayOrders, receiveUserTodayOrders } from '../actions/orders'
 import { setAuthedUser} from '../actions/authedUser'
 import { showLoading, hideLoading } from 'react-redux-loading'
+import { removeToken } from '../utils/token'
 
 
 export const handleInitialData = () => {
   return async (dispatch) => {
-    console.log('getting initial data!');
     dispatch(showLoading())
     return getInitialData()
       .then(async (res) => {
@@ -72,6 +72,14 @@ export const handleInitialData = () => {
           dispatch(receiveTodayOrders(todaySales))
           dispatch(receiveUserTodayOrders(userTodaySales))
         }
+        else {
+          console.warn(res);
+          removeToken()
+        }
+        dispatch(hideLoading())
+      }).catch(err => {
+        console.warn(err);
+        removeToken()
         dispatch(hideLoading())
       })
   };

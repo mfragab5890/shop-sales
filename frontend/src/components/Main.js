@@ -50,25 +50,12 @@ class Main extends Component {
   componentDidMount = async () => {
     const { prevLocation } = this.state
     const { pathname } = this.props.location
-    const { dispatch, productsLength } = this.props
+    console.log('from main',pathname);
     if ( prevLocation !== pathname ) {
       await this.setState({
         prevLocation : pathname,
-        loading:true
       })
     }
-    if (productsLength === 0) {
-      if (getToken()) {
-        await dispatch(handleInitialData())
-        await this.setState({
-          loading:false
-        })
-        return this.props.history.push(prevLocation)
-      }
-    }
-    await this.setState({
-      loading:false
-    })
   }
 
   render(){
@@ -106,7 +93,6 @@ class Main extends Component {
 }
 
 const mapStateToProps = ({products}) => {
-  console.log(products);
   return {
     productsLength: products.products.length
   };
