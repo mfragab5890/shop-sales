@@ -7,8 +7,6 @@ import AppFooter from './AppFooter'
 import LoadingBar from 'react-redux-loading'
 import { connect } from 'react-redux'
 import { withRouter} from 'react-router-dom'
-import { handleInitialData } from '../actions/shared'
-import { getToken } from '../utils/token'
 
 class Main extends Component {
   state = {
