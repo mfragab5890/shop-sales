@@ -1,5 +1,5 @@
 import { getToken, setToken, removeToken } from './token'
-const api = 'https://shopsales-backend.herokuapp.com' || 'http://localhost:5000'
+const api = process.env.SHOPSALES_API_URL || 'http://localhost:5000'
 
 let token = getToken()
 let headers = {
