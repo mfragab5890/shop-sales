@@ -55,6 +55,7 @@ class Login extends React.Component {
       formComplete : false,
       error: '',
       showError: false,
+      loading: true,
     })
     await dispatch(handleUserLogin(username, password, remember))
     .then(async (res) => {
@@ -65,15 +66,10 @@ class Login extends React.Component {
         this.setState({
           error: res.message,
           showError: true,
+          loading: false,
         })
       }
     })
-    /*if ( await dispatch(handleUserLogin({username,password,})) ){
-      this.props.history.push(prevLocation)
-    }
-    else {
-      this.setState({showError:true})
-    }*/
 
   }
 
@@ -95,8 +91,18 @@ class Login extends React.Component {
     const { dispatch } = this.props
     const { prevLocation } = this.state
     if (getToken()) {
-      await dispatch(handleInitialData())
-      return this.props.history.push(prevLocation)
+      await dispatch(handleInitialData()).then(res => {
+        if (res.success) {
+          return this.props.history.push(prevLocation)
+        }
+        else {
+          return this.setState({
+            loading: false,
+            error: res.msg,
+            showError: true,
+          });
+        }
+      })
     }
     await this.setState({
       loading: false
@@ -117,7 +123,7 @@ class Login extends React.Component {
       return (
         <Segment style = {{width:'100%'}}>
           <Dimmer active style = {{width:'100%'}}>
-            <Loader indeterminate  style = {{width:'100%'}}>Preparing Data</Loader>
+            <Loader indeterminate  style = {{width:'100%'}}>Checking User Authorization</Loader>
           </Dimmer>
           <Image src='/shopn.jpg' style = {{width:'100%'}}/>
         </Segment>

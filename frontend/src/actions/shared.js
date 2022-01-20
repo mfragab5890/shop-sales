@@ -75,12 +75,14 @@ export const handleInitialData = () => {
         else {
           console.warn(res);
           removeToken()
+          return res;
         }
         dispatch(hideLoading())
       }).catch(err => {
         console.warn(err);
         removeToken()
         dispatch(hideLoading())
+        return err;
       })
   };
 }
