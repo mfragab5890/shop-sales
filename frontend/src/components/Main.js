@@ -45,19 +45,9 @@ class Main extends Component {
 
   }
 
-  componentDidMount = async () => {
-    const { prevLocation } = this.state
-    const { pathname } = this.props.location
-    console.log('from main',pathname);
-    if ( prevLocation !== pathname ) {
-      await this.setState({
-        prevLocation : pathname,
-      })
-    }
-  }
-
   render(){
-    const { theme, lang, loading } = this.state
+    const { theme, lang } = this.state
+    const { loading } = this.props
     if (loading) {
       return (
         <Segment>
@@ -90,9 +80,9 @@ class Main extends Component {
   }
 }
 
-const mapStateToProps = ({products}) => {
+const mapStateToProps = ({loadingBar}) => {
   return {
-    productsLength: products.products.length
+    loading: loadingBar.default === 1? true : false
   };
 }
 

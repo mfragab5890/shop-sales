@@ -30,6 +30,23 @@ class Products extends Component {
 
   }
 
+  componentDidUpdate(){
+    const location = this.props.history.location.pathname
+    if (location.includes('new')) {
+      const { activeItem } = this.state
+      if (activeItem !== 'New Product') {
+        return this.setState({ activeItem: 'New Product' })
+      }
+    }
+    if (location.includes('all')) {
+      const { activeItem } = this.state
+      if (activeItem !== 'All Products') {
+        return this.setState({ activeItem: 'All Products' })
+      }
+    }
+
+  }
+
   render() {
     const { activeItem } = this.state
     const { theme, lang } = this.props

@@ -3,7 +3,7 @@ import { connect } from 'react-redux'
 import { withRouter } from 'react-router-dom'
 import { handleUserLogin } from '../actions/authedUser'
 import { Button, Form, Grid, Header, Image, Message, Segment, Dimmer, Loader } from 'semantic-ui-react'
-import { handleInitialData } from '../actions/shared'
+import { handleInitialData, handleInitialDataAfterLogin } from '../actions/shared'
 import { getToken } from '../utils/token'
 
 class Login extends React.Component {
@@ -58,9 +58,16 @@ class Login extends React.Component {
       loading: true,
     })
     await dispatch(handleUserLogin(username, password, remember))
-    .then(async (res) => {
+    .then(async(res) => {
       if (res === true) {
-        this.props.history.push(prevLocation)
+        await dispatch(handleInitialDataAfterLogin())
+        if (prevLocation === '/log-in') {
+          return this.props.history.push('/sales/new');
+        }
+        else {
+          return this.props.history.push(prevLocation);
+        }
+
       }
       else {
         this.setState({
@@ -88,8 +95,7 @@ class Login extends React.Component {
   }
 
   checkUserLoggedin = async() => {
-    const { dispatch } = this.props
-    const { prevLocation } = this.state
+    const { dispatch, prevLocation } = this.props
     if (getToken()) {
       await dispatch(handleInitialData()).then(res => {
         if (res.success) {
@@ -104,16 +110,17 @@ class Login extends React.Component {
         }
       })
     }
-    await this.setState({
-      loading: false
-    })
+    else {
+      await this.setState({
+        loading: false
+      })
+    }
   }
 
   componentDidUpdate(){
     this.checkAutoFormComplete()
   }
   componentDidMount(){
-    console.log('mounted');
     this.checkUserLoggedin()
   }
 

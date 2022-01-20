@@ -30,6 +30,24 @@ class Sales extends Component {
 
   }
 
+  componentDidUpdate(){
+    const location = this.props.history.location.pathname
+    if (location.includes('new')) {
+      const { activeItem } = this.state
+      if (activeItem !== 'New Order') {
+        return this.setState({ activeItem: 'New Order' })
+      }
+
+    }
+    if (location.includes('mysales')) {
+      const { activeItem } = this.state
+      if (activeItem !== 'My Sales') {
+        return this.setState({ activeItem: 'My Sales' })
+      }
+    }
+
+  }
+
   render() {
     const { activeItem } = this.state
     const { theme, lang } = this.props

@@ -37,6 +37,28 @@ class Financial extends Component {
 
   }
 
+  componentDidUpdate(){
+    const location = this.props.history.location.pathname
+    if (location.includes('today')) {
+      const { activeItem } = this.state
+      if (activeItem !== 'Today Sales') {
+        return this.setState({ activeItem: 'Today Sales' })
+      }
+    }
+    if (location.includes('month')) {
+      const { activeItem } = this.state
+      if (activeItem !== 'Month Sales') {
+        return this.setState({ activeItem: 'Month Sales' })
+      }
+    }
+    if (location.includes('period')) {
+      const { activeItem } = this.state
+      if (activeItem !== 'Period Sales') {
+        return this.setState({ activeItem: 'Period Sales' })
+      }
+    }
+  }
+
   render() {
     const { activeItem } = this.state
     const { theme, lang } = this.props

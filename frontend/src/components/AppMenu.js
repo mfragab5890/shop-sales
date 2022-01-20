@@ -33,6 +33,30 @@ class AppMenu extends Component {
 
   }
 
+  componentDidUpdate(){
+    const location = this.props.history.location.pathname
+    if (location.includes('sales')) {
+      const { activeItem } = this.state
+      if (activeItem !== 'Sales') {
+        return this.setState({ activeItem: 'Sales' })
+      }
+    }
+    if (location.includes('financial')) {
+      const { activeItem } = this.state
+      if (activeItem !== 'Financial') {
+        return this.setState({ activeItem: 'Financial' })
+
+      }
+    }
+    if (location.includes('products')) {
+      const { activeItem } = this.state
+      if (activeItem !== 'Products') {
+        return this.setState({ activeItem: 'Products' })
+      }
+    }
+
+  }
+
   render() {
     const { activeItem } = this.state
     const { theme, lang } = this.props
