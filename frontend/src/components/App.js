@@ -24,6 +24,8 @@ class App extends Component {
   }
   componentDidUpdate = () => {
     console.log('app updated');
+    console.log(process.env.SHOPSALES_API_URL);
+
   }
 
   render(){
