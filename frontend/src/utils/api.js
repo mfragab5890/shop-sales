@@ -1,6 +1,6 @@
 import { getToken, setToken, removeToken } from './token'
 const api = process.env.SHOPSALES_API_URL || 'http://localhost:5000'
-console.log(process);
+console.log(process.env);
 let token = getToken()
 let headers = {
   'Accept': 'application/json',
