@@ -75,7 +75,6 @@ export const handleInitialData = () => {
         else {
           console.warn(res);
           removeToken()
-          return res;
         }
         dispatch(hideLoading())
         return res;

@@ -50,11 +50,11 @@ class Main extends Component {
     const { loading } = this.props
     if (loading) {
       return (
-        <Segment>
-          <Dimmer active>
-            <Loader indeterminate>Preparing Data</Loader>
+        <Segment style = {{width:'100%'}}>
+          <Dimmer active style = {{width:'100%'}}>
+            <Loader indeterminate  style = {{width:'100%'}}>Checking User Authorization</Loader>
           </Dimmer>
-          <Image src='/shopn.jpg' />
+          <Image src='/shopn.jpg' style = {{width:'100%'}}/>
         </Segment>
       )
     }
