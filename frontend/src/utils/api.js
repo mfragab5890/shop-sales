@@ -1,6 +1,6 @@
 import { getToken, setToken, removeToken } from './token'
 const api = process.env.SHOPSALES_API_URL || 'http://localhost:5000'
-
+console.log(process.env.SHOPSALES_API_URL);
 let token = getToken()
 let headers = {
   'Accept': 'application/json',
@@ -85,6 +85,19 @@ export const addNewProduct = (newProduct) => {
     }),
   }).then(res => res.json())
 }
+export const editOldProduct = (product, created_by) => {
+  return fetch(`${api}/products/edit`, {
+    method: 'POST',
+    headers: {
+      ...headers,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      ...product,
+      created_by: created_by
+    }),
+  }).then(res => res.json())
+}
 
 export const getPageProducts = (page=1) =>
   fetch(`${api}/products/all/${page}`, { headers })
@@ -108,7 +121,7 @@ fetch(`${api}/products/delete/${productId}`, {
     }).then(res => res.json())
 
 //orders APIs
-export const addNewOrder = (newOrder) => {
+export const addNewOrder = (newOrder, created_by) => {
   return fetch(`${api}/orders/new`, {
     method: 'POST',
     headers: {
@@ -117,7 +130,7 @@ export const addNewOrder = (newOrder) => {
     },
     body: JSON.stringify({
       ...newOrder,
-      created_by: 1
+      created_by: created_by,
     }),
   }).then(res => res.json())
 }

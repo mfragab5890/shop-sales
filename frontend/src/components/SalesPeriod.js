@@ -2,9 +2,10 @@ import React, { Component, Fragment } from 'react'
 import { Button, Header, Icon, Modal, Segment, Item, Step, Statistic, Message, Input, Grid} from 'semantic-ui-react'
 import { getPeriodOrders } from '../utils/api'
 import ReceiptView from './ReceiptView'
-import { deleteOrder } from '../utils/api'
+import { handleDeleteOrder } from '../actions/orders'
+import { connect } from 'react-redux'
 
-export default class SalesPeriod extends Component {
+class SalesPeriod extends Component {
   state = {
     orderId: '',
     periodSales: [],
@@ -47,12 +48,12 @@ export default class SalesPeriod extends Component {
   }
 
   handleRemoveOrder = async (orderId) => {
-    const { lang } = this.props
+    const { lang, dispatch } = this.props
     const message = lang === 'EN'
       ? `Are You Sure You Want To Delete Order Number ${orderId}`
       : `هل انت متاكد انك تريد حذف عملية البيع رقم ${orderId}`
     if (window.confirm(message)) {
-      await deleteOrder(orderId).then(res => {
+      await dispatch(handleDeleteOrder(orderId)).then(res => {
         this.setState({
           message: res.message,
           orderId: ''
@@ -362,3 +363,5 @@ export default class SalesPeriod extends Component {
     )
   }
 }
+
+export default connect()(SalesPeriod)

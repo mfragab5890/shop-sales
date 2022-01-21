@@ -1,4 +1,4 @@
-import { getPageProducts, removeProduct, addNewProduct } from '../utils/api'
+import { getPageProducts, removeProduct, addNewProduct, editOldProduct } from '../utils/api'
 import { showLoading, hideLoading } from 'react-redux-loading'
 
 //handle products action creator
@@ -56,10 +56,10 @@ export const handleReceiveProducts = (page) => {
   }
 }
 
-export const handleAddProduct = (product) => {
+export const handleAddProduct = (product, authedId) => {
   return async (dispatch) => {
     dispatch(showLoading())
-    return addNewProduct(product).then(res => {
+    return addNewProduct(product, authedId).then(res => {
       if (res.success) {
         const { newProduct } = res
         dispatch(addProduct(newProduct))
@@ -71,6 +71,24 @@ export const handleAddProduct = (product) => {
       dispatch(hideLoading())
       return err;
     })
+  }
+}
+
+export const handleEditProduct = (product, authedId) => {
+  return async (dispatch) => {
+    dispatch(showLoading())
+    return editOldProduct(product,authedId).then(res => {
+      if (res.success) {
+        dispatch(editProduct(product))
+      }
+      dispatch(hideLoading())
+      return res;
+    }).catch(err => {
+      console.warn(err);
+      dispatch(hideLoading())
+      return err;
+    })
+
   }
 }
 

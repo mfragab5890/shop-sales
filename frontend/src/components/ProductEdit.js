@@ -1,10 +1,11 @@
 import React, { Component } from 'react'
-import { Segment, Button, Form, Header, Card, Image, Message } from 'semantic-ui-react'
+import { Segment, Form, Header, Card, Image, Message } from 'semantic-ui-react'
 import bwipjs from 'bwip-js'
-import { addNewProduct } from '../utils/api'
-import ReactToPrint from 'react-to-print';
+import { handleEditProduct } from '../actions/products'
+import { connect } from 'react-redux'
+import ProductView from './ProductView'
 
-export default class NewProduct extends Component {
+class ProductEdit extends Component {
   state = {
     myScript: {
       EN: {
@@ -13,7 +14,6 @@ export default class NewProduct extends Component {
         buyingPrice: 'Buying Price',
         sellingPrice: 'Selling Price',
         quantity: 'Quantity',
-        barcode: 'Barcode Text',
         minimum: 'Minimum',
         maximum: 'Maximum',
         image: 'Image',
@@ -35,7 +35,6 @@ export default class NewProduct extends Component {
         buyingPrice: 'سعر الشراء',
         sellingPrice: 'سعر البيع',
         quantity: 'الكمية',
-        barcode: 'الكود',
         minimum: 'الحد الادنى',
         maximum: 'الحد الاقصى',
         image: 'صورة المنتج',
@@ -57,7 +56,6 @@ export default class NewProduct extends Component {
     buyingPrice: '',
     sellingPrice: '',
     quantity: '',
-    barcode: '',
     minimum: 0,
     maximum: '',
     image: '',
@@ -143,7 +141,7 @@ export default class NewProduct extends Component {
     const newValue = value.toString()
     try {
       // The return value is the canvas element
-      let canvas = await bwipjs.toCanvas('mycanvas', {
+      await bwipjs.toCanvas('mycanvas', {
                 bcid:        'code128',       // Barcode type
                 text:        newValue,    // Text to encode
                 scale:       2,               // 2x scaling factor
@@ -160,39 +158,35 @@ export default class NewProduct extends Component {
 
   }
 
-  handleAddProduct = (e) => {
+  handleProductEdit = (e) => {
     e.preventDefault()
     const { name, description, buyingPrice, sellingPrice, quantity, minimum, maximum, image } = this.state
+    const { lang, dispatch } = this.props
     if (name === '') {
-      const { lang } = this.props
       const error = this.state.myScript[lang].error.name
       return this.setState({
         error: error
       });
     }
     if (description === '') {
-      const { lang } = this.props
       const error = this.state.myScript[lang].error.description
       return this.setState({
         error: error
       });
     }
     if (buyingPrice === '') {
-      const { lang } = this.props
       const error = this.state.myScript[lang].error.buyingPrice
       return this.setState({
         error: error
       });
     }
     if (sellingPrice === '') {
-      const { lang } = this.props
       const error = this.state.myScript[lang].error.sellingPrice
       return this.setState({
         error: error
       });
     }
     if (quantity === '') {
-      const { lang } = this.props
       const error = this.state.myScript[lang].error.quantity
       return this.setState({
         error: error
@@ -209,9 +203,8 @@ export default class NewProduct extends Component {
       image: image.split(',')[1]
     }
 
-    addNewProduct(newProduct).then(async (value) => {
+    dispatch(handleEditProduct(newProduct)).then(async (value) => {
       await this.setState({
-        barcode: value.newProduct.id,
         product: value.newProduct,
       })
       await this.handleBarcodeGenerator(value.newProduct.id)
@@ -230,7 +223,6 @@ export default class NewProduct extends Component {
         buyingPrice: '',
         sellingPrice: '',
         quantity: '',
-        barcode: '',
         minimum: 0,
         maximum: '',
         image: '',
@@ -246,9 +238,21 @@ export default class NewProduct extends Component {
   }
 
   render() {
-    const { product, myScript, error } = this.state
     const { theme, lang } = this.props
-    const {sellingPrice, name, barcodeImage} = this.state
+    const {
+      product,
+      myScript,
+      error,
+      sellingPrice,
+      name,
+      description,
+      buyingPrice,
+      quantity,
+      barcodeImage,
+      minimum,
+      maximum,
+      newImage
+     } = this.state
 
     return (
       <Segment>
@@ -263,7 +267,7 @@ export default class NewProduct extends Component {
             type='text'
             label = {myScript[lang].name}
             placeholder='Product Name'
-            value = {this.state.name}
+            value = {name}
             onChange = {this.onNameChange}
           />
           <Form.Field
@@ -272,7 +276,7 @@ export default class NewProduct extends Component {
             type='text'
             label = {myScript[lang].description}
             placeholder='description'
-            value = {this.state.description}
+            value = {description}
             onChange = {this.onDesChange}
           />
           <Form.Field
@@ -282,7 +286,7 @@ export default class NewProduct extends Component {
             min = {0}
             label = {myScript[lang].buyingPrice}
             placeholder='Product buying Price'
-            value = {this.state.buyingPrice}
+            value = {buyingPrice}
             onChange = {this.onBuyPriceChange}
           />
           <Form.Field
@@ -292,7 +296,7 @@ export default class NewProduct extends Component {
             min = {0}
             label = {myScript[lang].sellingPrice}
             placeholder='Product Selling Price'
-            value = {this.state.sellingPrice}
+            value = {sellingPrice}
             onChange = {this.onSellPriceChange}
           />
           <Form.Field
@@ -302,7 +306,7 @@ export default class NewProduct extends Component {
             min = {0}
             label = {myScript[lang].quantity}
             placeholder='Current Quantity'
-            value = {this.state.quantity}
+            value = {quantity}
             onChange = {this.onQuantityChange}
           />
           <Form.Field
@@ -311,7 +315,7 @@ export default class NewProduct extends Component {
             min = {0}
             label = {myScript[lang].minimum}
             placeholder='Minimum Stock Quantity'
-            value = {this.state.minimum}
+            value = {minimum}
             onChange = {this.onMinChange}
           />
           <Form.Field
@@ -320,7 +324,7 @@ export default class NewProduct extends Component {
             min = {0}
             label = {myScript[lang].maximum}
             placeholder= 'Maximum Stock Quantity'
-            value = {this.state.maximum}
+            value = {maximum}
             onChange = {this.onMaxChange}
           />
           <Form.Field
@@ -338,14 +342,10 @@ export default class NewProduct extends Component {
               :null
             }
           </Form.Field>
-          <Form.Field>
-            <label>{myScript[lang].barcode}</label>
-            <input placeholder='Barcode Text' disabled value = {this.state.barcode}/>
-          </Form.Field>
           <Form.Button
             content={myScript[lang].btns.submit}
             attached='bottom'
-            onClick = {this.handleAddProduct}
+            onClick = {this.handleNewProduct}
           />
             <Message
               error
@@ -354,46 +354,15 @@ export default class NewProduct extends Component {
             />
         </Form>
         <canvas id="mycanvas" style={{padding:'3px', margin: '3px', display: 'none'}}  ref={el => (this.canavasRef = el)} />
-
         {
           product &&
-          <Segment>
-            <Card color={theme} centered>
-              <img src={barcodeImage} className="ui centered spaced image" ref={el => (this.barcodeRef = el)}/>
-              <ReactToPrint
-                trigger={() => {
-                  return <Button color = {theme} attached='bottom'>{myScript[lang].btns.print}</Button>;
-                }}
-                content={() => this.barcodeRef}
-              />
-            </Card>
-            <Card color={theme} centered fluid>
-              <Card.Content>
-                <Image
-                  floated='right'
-                  size='mini'
-                  src={this.state.newImage}
-                />
-                <Card.Header>{product.name}</Card.Header>
-                <Card.Meta>{product.id}</Card.Meta>
-                <Card.Description>
-                  {product.description}
-                </Card.Description>
-              </Card.Content>
-              <Card.Content extra>
-                <div className='ui two buttons'>
-                  <Button basic color='green'>
-                    Edit
-                  </Button>
-                  <Button basic color='red'>
-                    Delete
-                  </Button>
-                </div>
-              </Card.Content>
-            </Card>
+          <Segment textAlign = 'center'>
+            <ProductView theme = {theme} lang = {lang} product = {product}/>
           </Segment>
         }
       </Segment>
     )
   }
 }
+
+export default connect()(ProductEdit)

@@ -263,6 +263,61 @@ def create_app(test_config=None):
             print(e)
             abort(400)
 
+    # edit product endpoint. this end point should take:
+    # id and the details to be changed
+    # permission: edit_product
+    @app.route('/products/edit', methods=[ 'PATCH' ])
+    @jwt_required()
+    def edit_product():
+        body = request.get_json()
+        product_id = int(body.get('id',None))
+        if product_id is not None:
+            user_product = Products.query.get(product_id)
+            name = body.get('name', None)
+            if name is not None:
+                user_product.name = name
+            sell_price = int(body.get('sellingPrice', None))
+            if name is not None:
+                user_product.name = name
+            buy_price = int(body.get('buyingPrice', None))
+            if name is not None:
+                user_product.name = name
+            qty = int(body.get('quantity', 0))
+            if name is not None:
+                user_product.name = name
+            mini = int(body.get('minimum', 0))
+            maxi = int(body.get('maximum', (qty + 1)))
+            sold = int(body.get('sold', 0))
+            image = body.get('image', '')
+            description = body.get('description', None)
+
+        new_product = Products(name=name,
+                               sell_price=sell_price,
+                               buy_price=buy_price,
+                               qty=qty,
+                               created_by=created_by,
+                               mini=mini,
+                               maxi=maxi,
+                               sold=sold,
+                               image=image,
+                               description=description
+                               )
+
+        try:
+            new_product.insert()
+            # get new list id
+            user_product = Products.query \
+                .filter(Products.name == name) \
+                .order_by(db.desc(Products.id)).first().format()
+            return jsonify({
+                'success': True,
+                'message': 'product created successfully',
+                'newProduct': user_product,
+            })
+        except Exception as e:
+            print(e)
+            abort(400)
+
     @app.route('/products/all/<int:page>', methods=[ 'GET' ])
     @jwt_required()
     def get_all_products(page):

@@ -1,9 +1,9 @@
 import React, { Component } from 'react'
-import { Segment, Form, Header, Card, Image, Message } from 'semantic-ui-react'
+import { Segment, Form, Header, Image, Message } from 'semantic-ui-react'
 import bwipjs from 'bwip-js'
 import { handleAddProduct } from '../actions/products'
 import { connect } from 'react-redux'
-import BarcodeToPrint from './BarcodeToPrint'
+import ProductView from './ProductView'
 
 class NewProduct extends Component {
   state = {
@@ -158,39 +158,35 @@ class NewProduct extends Component {
 
   }
 
-  handleNewProduct = (e) => {
+  handleNewProduct = async (e) => {
     e.preventDefault()
     const { name, description, buyingPrice, sellingPrice, quantity, minimum, maximum, image } = this.state
+    const { lang, dispatch } = this.props
     if (name === '') {
-      const { lang } = this.props
       const error = this.state.myScript[lang].error.name
       return this.setState({
         error: error
       });
     }
     if (description === '') {
-      const { lang } = this.props
       const error = this.state.myScript[lang].error.description
       return this.setState({
         error: error
       });
     }
     if (buyingPrice === '') {
-      const { lang } = this.props
       const error = this.state.myScript[lang].error.buyingPrice
       return this.setState({
         error: error
       });
     }
     if (sellingPrice === '') {
-      const { lang } = this.props
       const error = this.state.myScript[lang].error.sellingPrice
       return this.setState({
         error: error
       });
     }
     if (quantity === '') {
-      const { lang } = this.props
       const error = this.state.myScript[lang].error.quantity
       return this.setState({
         error: error
@@ -206,8 +202,7 @@ class NewProduct extends Component {
       maximum,
       image: image.split(',')[1]
     }
-    const {dispatch} = this.props
-    dispatch(handleAddProduct(newProduct)).then(async (value) => {
+    await dispatch(handleAddProduct(newProduct)).then(async (value) => {
       await this.setState({
         product: value.newProduct,
       })
@@ -252,10 +247,8 @@ class NewProduct extends Component {
       description,
       buyingPrice,
       quantity,
-      barcodeImage,
       minimum,
       maximum,
-      newImage
      } = this.state
 
     return (
@@ -358,29 +351,10 @@ class NewProduct extends Component {
             />
         </Form>
         <canvas id="mycanvas" style={{padding:'3px', margin: '3px', display: 'none'}}  ref={el => (this.canavasRef = el)} />
-
         {
           product &&
           <Segment textAlign = 'center'>
-            <Card color={theme} centered>
-              <BarcodeToPrint
-                theme = {theme}
-                barcodeImage = {barcodeImage}
-              />
-            </Card>
-            <Card color={theme} centered>
-              <Card.Content>
-                <Card.Header>
-                  {product.name}
-                  <Image
-                    floated='right'
-                    size='mini'
-                    src={newImage ? newImage : '/logo.png'}
-                  />
-                </Card.Header>
-                <Card.Meta>{product.id} | {product.created_on}</Card.Meta>
-              </Card.Content>
-            </Card>
+            <ProductView theme = {theme} lang = {lang} product = {product}/>
           </Segment>
         }
       </Segment>

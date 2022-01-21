@@ -52,12 +52,12 @@ class ProductView extends Component {
       ? `Are You Sure You Want To Delete Product Number ${productId}`
       : `هل انت متاكد انك تريد حذف المنتج رقم ${productId}`
     if (window.confirm(message)) {
-      await dispatch(handleDeleteProduct(productId)).then(res => {
+      await dispatch(handleDeleteProduct(productId)).then(async (res) => {
         if (res.success === true) {
-          confirmDelete(productId, res.message)
+          await confirmDelete(productId, res.message)
         }
         else {
-          this.setState({
+          await this.setState({
             message: res.message,
             success: false
           })
