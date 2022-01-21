@@ -44,12 +44,7 @@ class Main extends Component {
     }
 
   }
-  componentDidMount = async () => {
-    console.log('main mounted');
-  }
-  componentDidUpdate = () => {
-    console.log('main updated');
-  }
+  
   render(){
     const { theme, lang } = this.state
     const { loading } = this.props

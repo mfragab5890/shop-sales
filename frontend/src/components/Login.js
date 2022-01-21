@@ -47,7 +47,6 @@ class Login extends React.Component {
   handleFormSubmit = async(e) => {
     e.preventDefault()
     const { dispatch, prevLocation } = this.props
-    console.log('login location', prevLocation);
     const username = this.state.username
     const password = this.state.password
     const remember = true

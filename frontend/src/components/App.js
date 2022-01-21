@@ -13,7 +13,6 @@ class App extends Component {
   }
 
   componentDidMount = async () => {
-    console.log('app mounted');
     const { pathname } = this.props.location
     const { prevLocation } = this.state
     if ( prevLocation !== pathname ) {
@@ -21,11 +20,6 @@ class App extends Component {
         prevLocation : pathname,
       })
     }
-  }
-  componentDidUpdate = () => {
-    console.log('app updated');
-    console.log(process.env.SHOPSALES_API_URL);
-
   }
 
   render(){
