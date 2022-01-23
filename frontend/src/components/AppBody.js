@@ -6,10 +6,11 @@ import Financial from './Financial'
 import Products from './Products'
 import Error from './Error'
 import { Route, Switch, Redirect } from 'react-router-dom'
+import { connect } from 'react-redux'
 
-export default class AppBody extends Component {
+class AppBody extends Component {
   render() {
-    const { theme, lang } = this.props
+    const { theme, lang, permissions } = this.props
     return (
       <Grid columns={2}>
         <Grid.Column floated='left' stretched width={3} style = {{padding:'20px 0px 20px 0px',}}>
@@ -22,32 +23,38 @@ export default class AppBody extends Component {
             </Route>
             <Route path='/sales' render ={() =>{
                 return (
-                  <Sales theme = {theme} lang = {lang}/>
+                  permissions.includes('CREATE_ORDER') && permissions.includes('SEARCH_PRODUCTS_BY_ID')
+                  ?<Sales theme = {theme} lang = {lang}/>
+                  :<Error message = "Sorry You Have No Authorization To View This Page" />
                   );
                 }
               }
-              />
+            />
             <Route path='/financial' render ={() =>{
-                  return (
-                    <Financial theme = {theme} lang = {lang}/>
-                    );
-                  }
+                return (
+                  permissions.includes('GET_MONTH_SALES') || permissions.includes('GET_PERIOD_SALES') || permissions.includes('GET_TODAY_SALES')
+                  ?<Financial theme = {theme} lang = {lang}/>
+                  :<Error message = "Sorry You Have No Authorization To View This Page" />
+                  );
                 }
-              />
+              }
+            />
             <Route path='/products' render ={() =>{
                 return (
-                  <Products theme = {theme} lang = {lang}/>
+                  permissions.includes('CREATE_NEW_PRODUCT') || permissions.includes('GET_ALL_PRODUCTS')
+                  ? <Products theme = {theme} lang = {lang}/>
+                  : <Error message = "Sorry You Have No Authorization To View This Page" />
                   );
                 }
               }
-              />
+            />
             <Route path='*' render ={() =>{
                 return (
-                  <Error message = "Sorry This menue Page Doesn't exist" />
+                  <Error message = "Sorry You Have No Authorization To View This Page" />
                   );
                 }
               }
-              />
+            />
           </Switch>
 
         </Grid.Column>
@@ -55,3 +62,12 @@ export default class AppBody extends Component {
     )
   }
 }
+
+const mapStateToProps = ({authedUser}) => {
+  const permissions = authedUser.permissions.map((permission) => permission.name)
+  return {
+    permissions: authedUser? permissions:[],
+  };
+}
+
+export default connect(mapStateToProps)(AppBody)

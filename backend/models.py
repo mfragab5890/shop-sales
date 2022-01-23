@@ -119,9 +119,10 @@ class UserPermissions(db.Model):
     permission_id = db.Column(db.Integer, db.ForeignKey('permissions.id'), nullable=False)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET DEFAULT'), nullable=False, default=1)
 
-    def __init__(self, user_id, permission_id):
+    def __init__(self, user_id, permission_id, created_by):
         self.user_id = user_id
         self.permission_id = permission_id
+        self.created_by = created_by
 
     def insert(self):
         db.session.add(self)
