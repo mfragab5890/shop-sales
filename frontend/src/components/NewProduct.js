@@ -161,7 +161,7 @@ class NewProduct extends Component {
   handleNewProduct = async (e) => {
     e.preventDefault()
     const { name, description, buyingPrice, sellingPrice, quantity, minimum, maximum, image } = this.state
-    const { lang, dispatch } = this.props
+    const { lang, dispatch, authedId } = this.props
     if (name === '') {
       const error = this.state.myScript[lang].error.name
       return this.setState({
@@ -200,9 +200,10 @@ class NewProduct extends Component {
       quantity,
       minimum,
       maximum,
-      image: image.split(',')[1]
+      image: image.split(',')[1],
+      created_by: authedId,
     }
-    await dispatch(handleAddProduct(newProduct)).then(async (value) => {
+    await dispatch(handleAddProduct(newProduct, authedId)).then(async (value) => {
       await this.setState({
         product: value.newProduct,
       })
@@ -362,4 +363,10 @@ class NewProduct extends Component {
   }
 }
 
-export default connect()(NewProduct)
+const mapStateToProps = ({authedUser}) => {
+  return {
+    authedId: authedUser.id
+  };
+}
+
+export default connect(mapStateToProps)(NewProduct)

@@ -1,4 +1,4 @@
-import { getInitialData, getTodayOrders, getMonthOrders, getPageProducts } from '../utils/api'
+import { getInitialData, getTodayOrders, getMonthOrders, getPageProducts, getUserTodayOrders } from '../utils/api'
 import { receiveProducts } from '../actions/products'
 import { receiveMonthOrders, receiveTodayOrders, receiveUserTodayOrders } from '../actions/orders'
 import { setAuthedUser} from '../actions/authedUser'
@@ -54,7 +54,7 @@ export const handleInitialData = () => {
             console.warn(err);
             return [];
           })
-          const userTodaySales =  await getTodayOrders(authed_user.id).then(res => {
+          const userTodaySales =  await getUserTodayOrders().then(res => {
             if (res.success) {
               return res.orders;
             }
@@ -133,8 +133,7 @@ export const handleInitialDataAfterLogin = () => {
             console.warn(err);
             return [];
           })
-          const {authed_user} = res
-          const userTodaySales =  await getTodayOrders(authed_user.id).then(res => {
+          const userTodaySales =  await getUserTodayOrders().then(res => {
             if (res.success) {
               return res.orders;
             }

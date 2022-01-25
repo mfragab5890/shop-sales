@@ -214,12 +214,13 @@ class NewOrder extends Component {
       printing: true,
     })
     const { cartItems, total, totalCost, totalQuantity } = this.state
-    const { lang, dispatch } = this.props
+    const { lang, dispatch, authedId } = this.props
     dispatch(handleAddOrder({
       cartItems,
       total,
       totalCost,
-      totalQuantity
+      totalQuantity,
+      created_by:authedId,
     }))
 
     const message = lang === 'EN'
@@ -355,4 +356,10 @@ class NewOrder extends Component {
   }
 }
 
-export default connect()(NewOrder)
+const mapStateToProps = ({authedUser}) => {
+  return {
+    authedId: authedUser.id
+  };
+}
+
+export default connect(mapStateToProps)(NewOrder)

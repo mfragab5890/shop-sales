@@ -80,7 +80,6 @@ export const addNewProduct = (newProduct) => {
     },
     body: JSON.stringify({
       ...newProduct,
-      created_by: 1
     }),
   }).then(res => res.json())
 }
@@ -120,7 +119,7 @@ fetch(`${api}/products/delete/${productId}`, {
     }).then(res => res.json())
 
 //orders APIs
-export const addNewOrder = (newOrder, created_by) => {
+export const addNewOrder = (newOrder) => {
   return fetch(`${api}/orders/new`, {
     method: 'POST',
     headers: {
@@ -129,7 +128,6 @@ export const addNewOrder = (newOrder, created_by) => {
     },
     body: JSON.stringify({
       ...newOrder,
-      created_by: created_by,
     }),
   }).then(res => res.json())
 }
@@ -145,6 +143,10 @@ export const deleteOrder = (orderId) =>
 
 export const getTodayOrders = () =>
   fetch(`${api}/sales/today`, { headers })
+    .then(res => res.json())
+
+export const getUserTodayOrders = () =>
+  fetch(`${api}/user/sales/today`, { headers })
     .then(res => res.json())
 
 export const getMonthOrders = () =>
