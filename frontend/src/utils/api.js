@@ -44,11 +44,7 @@ export const login = (username, password, remember) =>
 export const logout = () =>
 fetch(`${api}/logout`, { headers })
   .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      removeToken()
-    }
-  })
+  
 
 export const saveNewUser = (user) =>
   fetch(`${api}/user/new`, {

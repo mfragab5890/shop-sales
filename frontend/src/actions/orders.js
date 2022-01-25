@@ -8,6 +8,7 @@ export const RECEIVE_USER_TODAY_ORDERS = 'RECEIVE_USER_TODAY_ORDERS'
 export const ADD_ORDER = 'ADD_ORDER'
 export const DELETE_ORDER = 'DELETE_ORDER'
 export const EDIT_ORDER = 'EDIT_ORDER'
+export const RESET_ORDERS = 'RESET_ORDERS'
 
 export const receiveMonthOrders = (monthSales) => {
   return {
@@ -48,6 +49,11 @@ export const editOrder = (order) => {
   return {
     type : EDIT_ORDER,
     order,
+  };
+}
+export const resetOrders = () => {
+  return {
+    type : RESET_ORDERS,
   };
 }
 

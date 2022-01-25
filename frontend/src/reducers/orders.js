@@ -4,10 +4,11 @@ import {
   RECEIVE_USER_TODAY_ORDERS,
   EDIT_ORDER,
   ADD_ORDER,
-  DELETE_ORDER
+  DELETE_ORDER,
+  RESET_ORDERS
 } from '../actions/orders'
 
-const orders = (state = {monthSales:[], todaySales : [], userTodaySales : []}, action) => {
+const orders = (state = {monthSales: [], todaySales : [], userTodaySales : []}, action) => {
   switch (action.type) {
     case RECEIVE_MONTH_ORDERS: {
       const { monthSales } = action
@@ -81,6 +82,13 @@ const orders = (state = {monthSales:[], todaySales : [], userTodaySales : []}, a
         todaySales,
         userTodaySales,
       }
+    }
+    case RESET_ORDERS: {
+      return {
+      monthSales: [],
+      todaySales : [],
+      userTodaySales : [],
+      };
     }
     default: {
       return state;

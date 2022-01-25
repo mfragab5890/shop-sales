@@ -6,6 +6,7 @@ export const RECEIVE_PRODUCTS = 'RECEIVE_PRODUCTS'
 export const ADD_PRODUCT = 'ADD_PRODUCT'
 export const DELETE_PRODUCT = 'DELETE_PRODUCT'
 export const EDIT_PRODUCT = 'EDIT_PRODUCT'
+export const RESET_PRODUCTS = 'RESET_PRODUCTS'
 
 export const receiveProducts = (data) => {
   return {
@@ -32,6 +33,11 @@ export const editProduct = (product) => {
   return {
     type : EDIT_PRODUCT,
     product,
+  };
+}
+export const resetProducts = () => {
+  return {
+    type : RESET_PRODUCTS,
   };
 }
 

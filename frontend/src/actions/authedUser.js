@@ -1,6 +1,8 @@
 import { login, logout } from '../utils/api'
 import { showLoading, hideLoading } from 'react-redux-loading'
 import { removeToken } from '../utils/token'
+import { resetOrders } from './orders'
+import { resetProducts } from './products'
 export const SET_AUTHED_USER = 'SET_AUTHED_USER'
 export const RESET_AUTHED_USER = 'RESET_AUTHED_USER'
 
@@ -44,9 +46,13 @@ export const handleUserLogout = () => {
   return (dispatch) => {
     dispatch(showLoading())
     return logout().then((res) => {
-      removeToken()
-      dispatch(resetAuthedUser())
-      dispatch(hideLoading())
+      if(res.success){
+        removeToken()
+        dispatch(resetOrders())
+        dispatch(resetProducts())
+        dispatch(resetAuthedUser())
+        dispatch(hideLoading())
+      }  
       return res;
     })
   };

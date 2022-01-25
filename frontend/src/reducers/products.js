@@ -1,4 +1,4 @@
-import { RECEIVE_PRODUCTS, EDIT_PRODUCT, ADD_PRODUCT, DELETE_PRODUCT } from '../actions/products'
+import { RECEIVE_PRODUCTS, EDIT_PRODUCT, ADD_PRODUCT, DELETE_PRODUCT, RESET_PRODUCTS } from '../actions/products'
 
 const products = (state = {products:[], pages:0 }, action) => {
   switch (action.type) {
@@ -36,6 +36,12 @@ const products = (state = {products:[], pages:0 }, action) => {
         ...state,
         products
       }
+    }
+    case RESET_PRODUCTS: {
+      return {
+        products:[],
+        pages:0,
+      };
     }
     default: {
       return state;
