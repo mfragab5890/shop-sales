@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Segment, Card, Input, Pagination, Message, Header } from 'semantic-ui-react'
+import { Segment, Card, Input, Pagination, Message, Header, Dimmer, Loader, Image } from 'semantic-ui-react'
 import ProductView from './ProductView'
 import { connect } from 'react-redux'
 import { handleReceiveProducts } from '../actions/products'
@@ -84,7 +84,7 @@ class AllProducts extends Component {
 
   render() {
 
-    const { theme, lang, products, pages } = this.props
+    const { theme, lang, products, pages, loadingBar } = this.props
     const { page, searchTerm, loading, results, noResults, deleted } = this.state
     const myScript = {
       EN: {
@@ -104,6 +104,16 @@ class AllProducts extends Component {
         },
       }
 
+    }
+    if (loadingBar) {
+      return (
+        <Segment style = {{width:'100%', height:'100%'}}>
+          <Dimmer active style = {{width:'100%'}}>
+            <Loader indeterminate  style = {{width:'100%'}}>Checking User Authorization</Loader>
+          </Dimmer>
+          <Image src='/shopn.jpg' style = {{width:'100%'}}/>
+        </Segment>
+      )
     }
     return (
       <Segment>
@@ -185,8 +195,9 @@ class AllProducts extends Component {
   }
 }
 
-const mapStateToProps = ({products}) => {
+const mapStateToProps = ({products, loadingBar}) => {
   return {
+    loadingBar: loadingBar.default === 1? true : false,
     ...products
   };
 }

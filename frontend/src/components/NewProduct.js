@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Segment, Form, Header, Image, Message } from 'semantic-ui-react'
+import { Segment, Form, Header, Image, Message, Dimmer, Loader } from 'semantic-ui-react'
 import bwipjs from 'bwip-js'
 import { handleAddProduct } from '../actions/products'
 import { connect } from 'react-redux'
@@ -238,7 +238,7 @@ class NewProduct extends Component {
   }
 
   render() {
-    const { theme, lang } = this.props
+    const { theme, lang, loadingBar } = this.props
     const {
       product,
       myScript,
@@ -251,7 +251,16 @@ class NewProduct extends Component {
       minimum,
       maximum,
      } = this.state
-
+    if (loadingBar) {
+      return (
+        <Segment style = {{width:'100%', height:'100%'}}>
+          <Dimmer active style = {{width:'100%'}}>
+            <Loader indeterminate  style = {{width:'100%'}}>Checking User Authorization</Loader>
+          </Dimmer>
+          <Image src='/shopn.jpg' style = {{width:'100%'}}/>
+        </Segment>
+      )
+    }
     return (
       <Segment>
         <Header as='h1' color={theme} textAlign='center' >
@@ -363,9 +372,10 @@ class NewProduct extends Component {
   }
 }
 
-const mapStateToProps = ({authedUser}) => {
+const mapStateToProps = ({authedUser, loadingBar}) => {
   return {
-    authedId: authedUser.id
+    loadingBar: loadingBar.default === 1? true : false,
+    authedId: authedUser.id,
   };
 }
 

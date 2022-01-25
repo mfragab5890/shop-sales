@@ -129,7 +129,7 @@ class Login extends React.Component {
     const { formComplete, username, password, showError, error, loading } = this.state
     if (loading) {
       return (
-        <Segment style = {{width:'100%'}}>
+        <Segment style = {{width:'100%', height:'100%'}}>
           <Dimmer active style = {{width:'100%'}}>
             <Loader indeterminate  style = {{width:'100%'}}>Checking User Authorization</Loader>
           </Dimmer>

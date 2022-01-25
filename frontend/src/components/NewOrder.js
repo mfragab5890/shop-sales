@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Grid, Image, Input, List, Message } from 'semantic-ui-react'
+import { Grid, Image, Input, List, Message, Dimmer, Loader, Segment } from 'semantic-ui-react'
 import { getProductById, searchProducts } from '../utils/api'
 import { handleAddOrder } from '../actions/orders'
 import CartToPrint from './CartToPrint'
@@ -240,7 +240,7 @@ class NewOrder extends Component {
 
   render() {
 
-    const { theme, lang } = this.props
+    const { theme, lang, loadingBar } = this.props
     const { barcode, searchTerm, cartItems, total, totalQuantity, loading, results, noResults, printing } = this.state
     const myScript = {
       EN:{
@@ -278,6 +278,17 @@ class NewOrder extends Component {
           print: 'طباعة الايصال',
         },
       }
+    }
+
+    if (loadingBar) {
+      return (
+        <Segment style = {{width:'100%', height:'100%'}}>
+          <Dimmer active style = {{width:'100%'}}>
+            <Loader indeterminate  style = {{width:'100%'}}>Checking User Authorization</Loader>
+          </Dimmer>
+          <Image src='/shopn.jpg' style = {{width:'100%'}}/>
+        </Segment>
+      )
     }
     return (
       <Grid stackable columns={2} celled='internally'>
@@ -356,9 +367,10 @@ class NewOrder extends Component {
   }
 }
 
-const mapStateToProps = ({authedUser}) => {
+const mapStateToProps = ({authedUser, loadingBar}) => {
   return {
-    authedId: authedUser.id
+    loadingBar: loadingBar.default === 1? true : false,
+    authedId: authedUser.id,
   };
 }
 

@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Segment, Form, Header, Card, Image, Message } from 'semantic-ui-react'
+import { Segment, Form, Header, Card, Image, Message, Dimmer, Loader } from 'semantic-ui-react'
 import bwipjs from 'bwip-js'
 import { handleEditProduct } from '../actions/products'
 import { connect } from 'react-redux'
@@ -238,7 +238,7 @@ class ProductEdit extends Component {
   }
 
   render() {
-    const { theme, lang } = this.props
+    const { theme, lang, loadingBar } = this.props
     const {
       product,
       myScript,
@@ -253,11 +253,20 @@ class ProductEdit extends Component {
       maximum,
       newImage
      } = this.state
-
-    return (
-      <Segment>
+     if (loadingBar) {
+       return (
+         <Segment style = {{width:'100%', height:'100%'}}>
+           <Dimmer active style = {{width:'100%'}}>
+             <Loader indeterminate  style = {{width:'100%'}}>Checking User Authorization</Loader>
+           </Dimmer>
+           <Image src='/shopn.jpg' style = {{width:'100%'}}/>
+         </Segment>
+       )
+     }
+     return (
+       <Segment>
         <Header as='h1' color={theme} textAlign='center' >
-          {lang === 'EN'? 'Add New Product' : 'اضافة منتج جديد'}
+          {lang === 'EN'? `Edit Product: ${product.name}`  : `تعديل المنتج : ${product.name}`}
         </Header>
 
         <Form error = {error ? true : false}>

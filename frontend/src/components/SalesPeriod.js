@@ -1,5 +1,20 @@
 import React, { Component, Fragment } from 'react'
-import { Button, Header, Icon, Modal, Segment, Item, Step, Statistic, Message, Input, Grid} from 'semantic-ui-react'
+import {
+  Button,
+  Header,
+  Icon,
+  Modal,
+  Segment,
+  Item,
+  Step,
+  Statistic,
+  Message,
+  Input,
+  Grid,
+  Dimmer,
+  Loader,
+  Image
+} from 'semantic-ui-react'
 import { getPeriodOrders } from '../utils/api'
 import ReceiptView from './ReceiptView'
 import { handleDeleteOrder } from '../actions/orders'
@@ -17,7 +32,8 @@ class SalesPeriod extends Component {
     today: '',
     periodFrom: '',
     periodTo: '',
-    noResults: false
+    noResults: false,
+    loading: false,
   }
   setOpen = (value) => {
     this.setState({
@@ -85,6 +101,9 @@ class SalesPeriod extends Component {
   handleGetPeriodOrders = async() => {
     const { periodFrom, periodTo } = this.state
     if(periodFrom !== '' || periodTo !== ''){
+      await this.setState({
+        loading:true,
+      })
       const data = await getPeriodOrders(periodFrom, periodTo)
       const periodSales = data.orders
       if (periodSales.length < 1) {
@@ -109,13 +128,14 @@ class SalesPeriod extends Component {
           totalCost,
           totalQuantity,
           revenue,
-          noResults: false
+          noResults: false,
+          loading:false,
         });
     }
   }
   render() {
 
-    const { theme, lang } = this.props
+    const { theme, lang, loadingBar } = this.props
     const {
       orderId,
       periodSales,
@@ -127,7 +147,8 @@ class SalesPeriod extends Component {
       today,
       periodFrom,
       periodTo,
-      noResults
+      noResults,
+      loading
     } = this.state
     const myScript = {
       EN: {
@@ -184,6 +205,19 @@ class SalesPeriod extends Component {
           results: 'اظهار النتائج',
         }
       }
+    }
+
+    if (loadingBar || loading) {
+      return (
+        <Segment style = {{width:'100%', height:'100%'}}>
+          <Dimmer active style = {{width:'100%'}}>
+            <Loader indeterminate  style = {{width:'100%'}}>
+              {loadingBar?'Checking User Authorization...': 'Getting Your Data From Database Please Wait...'}
+            </Loader>
+          </Dimmer>
+          <Image src='/shopn.jpg' style = {{width:'100%'}}/>
+        </Segment>
+      )
     }
 
     return (
@@ -364,4 +398,11 @@ class SalesPeriod extends Component {
   }
 }
 
-export default connect()(SalesPeriod)
+const mapStateToProps = ({authedUser, loadingBar}) => {
+  return {
+    loadingBar: loadingBar.default === 1? true : false,
+    authedId: authedUser.id,
+  };
+}
+
+export default connect(mapStateToProps)(SalesPeriod)

@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Button, Header, Icon, Modal, Segment, Item, Step, Statistic, Message} from 'semantic-ui-react'
+import { Button, Header, Icon, Modal, Segment, Item, Step, Statistic, Message, Dimmer, Loader, Image} from 'semantic-ui-react'
 import ReceiptView from './ReceiptView'
 import { handleDeleteOrder } from '../actions/orders'
 import { connect } from 'react-redux'
@@ -82,7 +82,7 @@ class SalesToday extends Component {
 
   render() {
 
-    const { theme, lang, todaySales } = this.props
+    const { theme, lang, todaySales, loadingBar } = this.props
     const { orderId, totalIncome, totalCost, totalQuantity, revenue, message, success } = this.state
     const myScript = {
       EN: {
@@ -117,6 +117,17 @@ class SalesToday extends Component {
           remove: 'حذف',
         }
       }
+    }
+
+    if (loadingBar) {
+      return (
+        <Segment style = {{width:'100%', height:'100%'}}>
+          <Dimmer active style = {{width:'100%'}}>
+            <Loader indeterminate  style = {{width:'100%'}}>Checking User Authorization</Loader>
+          </Dimmer>
+          <Image src='/shopn.jpg' style = {{width:'100%'}}/>
+        </Segment>
+      )
     }
 
     return (
@@ -250,9 +261,10 @@ class SalesToday extends Component {
   }
   }
 
-  const mapStateToProps = ({orders}) => {
+  const mapStateToProps = ({orders, loadingBar}) => {
     return {
-      todaySales: orders.todaySales
+      loadingBar: loadingBar.default === 1? true : false,
+      todaySales: orders.todaySales,
     };
   }
 
