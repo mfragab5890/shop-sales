@@ -41,17 +41,9 @@ export const login = (username, password, remember) =>
 
    })
 
-export const logout = (username) =>
-  fetch(`${api}/logout`, {
-    method: 'POST',
-    headers: {
-      ...headers,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      username,
-    }),
-  }).then(res => res.json())
+export const logout = () =>
+fetch(`${api}/logout`, { headers })
+  .then(res => res.json())
   .then(data => {
     if (data.success) {
       removeToken()

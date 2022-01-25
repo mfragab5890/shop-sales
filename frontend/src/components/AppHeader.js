@@ -1,6 +1,8 @@
 import React from 'react'
 import { Header, Image, Grid, Dropdown } from 'semantic-ui-react'
-import { removeToken } from '../utils/token'
+import { handleUserLogout } from '../actions/authedUser'
+import { connect } from 'react-redux'
+
 const themeOptions = [
   {
     key: 'basic',
@@ -77,8 +79,7 @@ const langOptions = [
   },
 ]
 
-
-export default class AppHeader extends React.Component {
+class AppHeader extends React.Component {
 
   handleThemeChange = (e, { value }) => {
     const { onThemeChange } = this.props
@@ -90,8 +91,13 @@ export default class AppHeader extends React.Component {
     onLangChange(value)
   }
 
+  logout = () => {
+    const { dispatch } = this.props
+    dispatch(handleUserLogout())
+  }
+
   render(){
-    const { theme, lang } = this.props
+    const { theme, lang, username } = this.props
     return (
       <div>
         <Grid centered columns = {3} textAlign='center' verticalAlign='middle' inverted>
@@ -124,15 +130,31 @@ export default class AppHeader extends React.Component {
                     </Dropdown.Menu>
                   </Dropdown.Menu>
                 </Dropdown>
-                <span onClick = {(e) => {
-                    removeToken()}}>{lang === 'EN' ? 'Logged in as': 'المستخدم' } Mostafa fouad</span>
+                <Dropdown  multiple icon='user'>
+                  <Dropdown.Menu>
+                    <Dropdown.Menu scrolling style = {{height:'100%', overflowX: 'auto', overflowY: 'auto'}}>
+                      <Dropdown.Header content={lang === 'EN' ? `Logged In As: ${username}`: `المستخدم : ${username}` } />
+                      {
+                        lang === 'EN'
+                        ? <Dropdown.Item key={'logout'} text={'Log Out'} onClick = {this.logout}/>
+                      : <Dropdown.Item key={'logout'} text={'تسجيل الخروج'} onClick = {this.logout}/>
+                      }
+                    </Dropdown.Menu>
+                  </Dropdown.Menu>
+                </Dropdown>
               </Header>
-
             </Grid.Column>
         </Grid.Row>
       </Grid>
     </div>
     );
   }
-
 }
+
+const mapStateToProps = ({authedUser}) => {
+  return {
+    username:authedUser.username,
+  };
+}
+
+export default connect(mapStateToProps)(AppHeader)
