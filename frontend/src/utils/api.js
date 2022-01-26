@@ -6,6 +6,17 @@ let headers = {
   'Authorization': 'Bearer ' + token
 }
 
+// check if server is running
+export const checkServer = () =>
+fetch(`${api}/check`, { headers })
+  .then(res => res.json()).catch(err => {
+    console.warn(err);
+    return {
+      success: false,
+      message: 'Server is not running'
+    };
+  })
+
 export const getInitialData = () =>{
   const token = getToken()
   headers.Authorization = 'Bearer ' + token
@@ -44,7 +55,7 @@ export const login = (username, password, remember) =>
 export const logout = () =>
 fetch(`${api}/logout`, { headers })
   .then(res => res.json())
-  
+
 
 export const saveNewUser = (user) =>
   fetch(`${api}/user/new`, {
