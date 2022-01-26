@@ -135,7 +135,7 @@ class SalesPeriod extends Component {
   }
   render() {
 
-    const { theme, lang, loadingBar } = this.props
+    const { theme, lang, loadingBar, permissions } = this.props
     const {
       orderId,
       periodSales,
@@ -320,14 +320,18 @@ class SalesPeriod extends Component {
                                   </Step.Content>
                               </Step>
                               <Step>
-                                <Button
-                                  icon='delete'
-                                  color = {'red'}
-                                  label = {myScript[lang].deleteReciept}
-                                  size='small'
-                                  labelPosition='right'
-                                  onClick = {() => this.handleRemoveOrder(order.id)}
-                                />
+                                {
+                                  permissions.includes('DELETE_ORDER')
+                                  &&
+                                  <Button
+                                    icon='delete'
+                                    color = {'red'}
+                                    label = {myScript[lang].deleteReciept}
+                                    size='small'
+                                    labelPosition='right'
+                                    onClick = {() => this.handleRemoveOrder(order.id)}
+                                  />
+                                }
                                 |
                                 <Modal
                                   closeIcon
@@ -345,17 +349,24 @@ class SalesPeriod extends Component {
                                       cartItems = {order.items}
                                       total = {order.total_price}
                                       totalQuantity = {order.qty}
-                                      orderId = {order.id}
                                       handleEditQuantity = {this.handleEditQuantity}
                                     />
                                   </Modal.Content>
                                   <Modal.Actions>
-                                    <Button color='red' onClick={() => this.handleRemoveOrder(order.id)}>
-                                      <Icon name='remove' /> {myScript[lang].btns.remove}
-                                    </Button>
-                                    <Button color={theme} onClick={() => this.handleEditOrder(order.id)}>
-                                      <Icon name='edit' /> {myScript[lang].btns.edit}
-                                    </Button>
+                                    {
+                                      permissions.includes('DELETE_ORDER')
+                                      &&
+                                      <Button color='red' onClick={() => this.handleRemoveOrder(order.id)}>
+                                        <Icon name='remove' /> {myScript[lang].btns.remove}
+                                      </Button>
+                                    }
+                                    {
+                                      permissions.includes('EDIT_ORDER')
+                                      &&
+                                      <Button color={theme} onClick={() => this.handleEditOrder(order.id)}>
+                                        <Icon name='edit' /> {myScript[lang].btns.edit}
+                                      </Button>
+                                    }
                                   </Modal.Actions>
                                 </Modal>
                               </Step>
@@ -399,9 +410,11 @@ class SalesPeriod extends Component {
 }
 
 const mapStateToProps = ({authedUser, loadingBar}) => {
+  const permissions = authedUser.permissions.map((permission) => permission.name)
   return {
     loadingBar: loadingBar.default === 1? true : false,
     authedId: authedUser.id,
+    permissions: authedUser? permissions:[],
   };
 }
 

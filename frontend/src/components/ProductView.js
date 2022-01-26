@@ -80,7 +80,7 @@ class ProductView extends Component {
 
   render() {
 
-    const { product, theme, lang } = this.props
+    const { product, theme, lang, permissions } = this.props
     const { barcodeImage, activeIndex, message, success } = this.state
     const myScript = {
       EN: {
@@ -188,12 +188,20 @@ class ProductView extends Component {
         </Card.Content>
         <Card.Content extra>
           <div className='ui two buttons'>
-            <Button basic color='green'>
-              {myScript[lang].btns.edit}
-            </Button>
-            <Button basic color='red' onClick = {() => this.handleRemoveProduct(product.id)}>
-              {myScript[lang].btns.remove}
-            </Button>
+            {
+              permissions.includes('EDIT_PRODUCT')
+              &&
+              <Button basic color='green'>
+                {myScript[lang].btns.edit}
+              </Button>
+            }
+            {
+              permissions.includes('DELETE_PRODUCT')
+              &&
+              <Button basic color='red' onClick = {() => this.handleRemoveProduct(product.id)}>
+                {myScript[lang].btns.remove}
+              </Button>
+            }
           </div>
         </Card.Content>
       </Card>
@@ -202,4 +210,11 @@ class ProductView extends Component {
   }
 }
 
-export default connect()(ProductView)
+const mapStateToProps = ({authedUser}) => {
+  const permissions = authedUser.permissions.map((permission) => permission.name)
+  return {
+    permissions: authedUser? permissions:[],
+  };
+}
+
+export default connect(mapStateToProps)(ProductView)

@@ -89,7 +89,7 @@ class SalesMonth extends Component {
 
   render() {
 
-    const { theme, lang, loadingBar } = this.props
+    const { theme, lang, loadingBar, permissions } = this.props
     const { orderId, monthSales, totalIncome, totalCost, totalQuantity, revenue, message, success } = this.state
     const myScript = {
       EN: {
@@ -209,14 +209,18 @@ class SalesMonth extends Component {
                             </Step.Content>
                         </Step>
                         <Step>
-                          <Button
-                            icon='delete'
-                            color = {'red'}
-                            label = {myScript[lang].deleteReciept}
-                            size='small'
-                            labelPosition='right'
-                            onClick = {() => this.handleRemoveOrder(order.id)}
-                          />
+                          {
+                            permissions.includes('DELETE_ORDER')
+                            &&
+                            <Button
+                              icon='delete'
+                              color = {'red'}
+                              label = {myScript[lang].deleteReciept}
+                              size='small'
+                              labelPosition='right'
+                              onClick = {() => this.handleRemoveOrder(order.id)}
+                            />
+                          }
                           |
                           <Modal
                             closeIcon
@@ -239,12 +243,20 @@ class SalesMonth extends Component {
                               />
                             </Modal.Content>
                             <Modal.Actions>
-                              <Button color='red' onClick={() => this.handleRemoveOrder(order.id)}>
-                                <Icon name='remove' /> {myScript[lang].btns.remove}
-                              </Button>
-                              <Button color={theme} onClick={() => this.handleEditOrder(order.id)}>
-                                <Icon name='edit' /> {myScript[lang].btns.edit}
-                              </Button>
+                              {
+                                permissions.includes('DELETE_ORDER')
+                                &&
+                                <Button color='red' onClick={() => this.handleRemoveOrder(order.id)}>
+                                  <Icon name='remove' /> {myScript[lang].btns.remove}
+                                </Button>
+                              }
+                              {
+                                permissions.includes('EDIT_ORDER')
+                                &&
+                                <Button color={theme} onClick={() => this.handleEditOrder(order.id)}>
+                                  <Icon name='edit' /> {myScript[lang].btns.edit}
+                                </Button>
+                              }
                             </Modal.Actions>
                           </Modal>
                         </Step>
@@ -266,10 +278,12 @@ class SalesMonth extends Component {
   }
 }
 
-const mapStateToProps = ({orders, loadingBar}) => {
+const mapStateToProps = ({orders, loadingBar, authedUser}) => {
+  const permissions = authedUser.permissions.map((permission) => permission.name)
   return {
     loadingBar: loadingBar.default === 1? true : false,
     monthSales: orders.monthSales,
+    permissions: authedUser? permissions:[],
   };
 }
 

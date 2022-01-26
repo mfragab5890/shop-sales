@@ -4,6 +4,7 @@ import { Segment, Menu } from 'semantic-ui-react'
 import NewOrder from './NewOrder'
 import UserSales from './UserSales'
 import Error from './Error'
+import { connect } from 'react-redux'
 
 class Sales extends Component {
   state = { activeItem: 'New Order' }
@@ -50,7 +51,7 @@ class Sales extends Component {
 
   render() {
     const { activeItem } = this.state
-    const { theme, lang } = this.props
+    const { theme, lang, permissions } = this.props
     const myScript = {
       AR: {
         firstTab: 'فاتورة جديدة',
@@ -65,20 +66,30 @@ class Sales extends Component {
       <Segment>
 
         <Menu inverted = {theme === 'black'? true : false} color={theme} attached='top' pointing>
-          <Menu.Item
-            name= {myScript.EN.firstTab}
-            active={activeItem === myScript.EN.firstTab}
-            onClick={this.handleItemClick}
-          >
-            {myScript[lang].firstTab}
-          </Menu.Item>
-          <Menu.Item
-            name= {myScript.EN.secondTab}
-            active={activeItem === myScript.EN.secondTab}
-            onClick={this.handleItemClick}
-          >
-            {myScript[lang].secondTab}
-          </Menu.Item>
+          {
+            permissions.includes('CREATE_ORDER') && permissions.includes('SEARCH_PRODUCTS_BY_ID') && permissions.includes('SEARCH_PRODUCTS_BY_TERM')
+            ?
+            <Menu.Item
+              name= {myScript.EN.firstTab}
+              active={activeItem === myScript.EN.firstTab}
+              onClick={this.handleItemClick}
+            >
+              {myScript[lang].firstTab}
+            </Menu.Item>
+            :null
+          }
+          {
+            permissions.includes('GET_USER_TODAY_SALES')
+            ?
+            <Menu.Item
+              name= {myScript.EN.secondTab}
+              active={activeItem === myScript.EN.secondTab}
+              onClick={this.handleItemClick}
+            >
+              {myScript[lang].secondTab}
+            </Menu.Item>
+            : null
+          }
         </Menu>
 
         <Segment color={theme}>
@@ -87,10 +98,18 @@ class Sales extends Component {
               <Redirect to = '/sales/new' />
             </Route>
             <Route exact path='/sales/new'>
-              <NewOrder theme = {theme} lang = {lang}/>
+              {
+                permissions.includes('CREATE_ORDER') && permissions.includes('SEARCH_PRODUCTS_BY_ID') && permissions.includes('SEARCH_PRODUCTS_BY_TERM')
+                ?<NewOrder theme = {theme} lang = {lang}/>
+                :<Error message = "Sorry You Have No Authorization To View This Page" />
+              }
             </Route>
             <Route exact path='/sales/mysales'>
-              <UserSales theme = {theme} lang = {lang}/>
+              {
+                permissions.includes('GET_USER_TODAY_SALES')
+                ?<UserSales theme = {theme} lang = {lang}/>
+                :<Error message = "Sorry You Have No Authorization To View This Page" />
+              }
             </Route>
             <Route path="*">
               <Error message = {'No Such page Please Go Back Or Navigate Using Menus'}/>
@@ -103,4 +122,11 @@ class Sales extends Component {
   }
 }
 
-export default withRouter(Sales)
+const mapStateToProps = ({authedUser}) => {
+  const permissions = authedUser.permissions.map((permission) => permission.name)
+  return {
+    permissions: authedUser? permissions:[],
+  };
+}
+
+export default withRouter(connect(mapStateToProps)(Sales))

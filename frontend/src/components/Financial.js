@@ -5,6 +5,7 @@ import { Segment, Menu } from 'semantic-ui-react'
 import SalesToday from './SalesToday'
 import SalesMonth from './SalesMonth'
 import SalesPeriod from './SalesPeriod'
+import { connect } from 'react-redux'
 
 class Financial extends Component {
   state = { activeItem: 'Today Sales' }
@@ -61,7 +62,7 @@ class Financial extends Component {
 
   render() {
     const { activeItem } = this.state
-    const { theme, lang } = this.props
+    const { theme, lang, permissions } = this.props
     const myScript = {
       AR: {
         firstTab: 'مبيعات اليوم',
@@ -79,27 +80,42 @@ class Financial extends Component {
       <Segment>
 
         <Menu inverted = {theme === 'black'? true : false} color={theme} attached='top' pointing>
-          <Menu.Item
-            name= {myScript.EN.firstTab}
-            active= {activeItem === myScript.EN.firstTab}
-            onClick={this.handleItemClick}
-          >
-            {myScript[lang].firstTab}
-          </Menu.Item>
-          <Menu.Item
-            name= {myScript.EN.secondTab}
-            active= {activeItem === myScript.EN.secondTab}
-            onClick={this.handleItemClick}
-          >
-            {myScript[lang].secondTab}
-          </Menu.Item>
-          <Menu.Item
-            name= {myScript.EN.thirdTab}
-            active= {activeItem === myScript.EN.thirdTab}
-            onClick={this.handleItemClick}
-          >
-            {myScript[lang].thirdTab}
-          </Menu.Item>
+          {
+            permissions.includes('GET_TODAY_SALES')
+            ?
+            <Menu.Item
+              name= {myScript.EN.firstTab}
+              active= {activeItem === myScript.EN.firstTab}
+              onClick={this.handleItemClick}
+            >
+              {myScript[lang].firstTab}
+            </Menu.Item>
+            :null
+          }
+          {
+            permissions.includes('GET_MONTH_SALES')
+            ?
+            <Menu.Item
+              name= {myScript.EN.secondTab}
+              active= {activeItem === myScript.EN.secondTab}
+              onClick={this.handleItemClick}
+            >
+              {myScript[lang].secondTab}
+            </Menu.Item>
+            :null
+          }
+          {
+            permissions.includes('GET_PERIOD_SALES')
+            ?
+            <Menu.Item
+              name= {myScript.EN.thirdTab}
+              active= {activeItem === myScript.EN.thirdTab}
+              onClick={this.handleItemClick}
+            >
+              {myScript[lang].thirdTab}
+            </Menu.Item>
+            :null
+          }
         </Menu>
 
         <Segment color={theme}>
@@ -108,13 +124,25 @@ class Financial extends Component {
               <Redirect to = '/financial/today' />
             </Route>
             <Route exact path='/financial/today'>
-              <SalesToday theme = {theme} lang = {lang}/>
+              {
+                permissions.includes('GET_TODAY_SALES')
+                ?<SalesToday theme = {theme} lang = {lang}/>
+                :<Error message = "Sorry You Have No Authorization To View This Page" />
+              }
             </Route>
             <Route exact path='/financial/month'>
-              <SalesMonth theme = {theme} lang = {lang}/>
+              {
+                permissions.includes('GET_MONTH_SALES')
+                ?<SalesMonth theme = {theme} lang = {lang}/>
+                :<Error message = "Sorry You Have No Authorization To View This Page" />
+              }
             </Route>
             <Route exact path='/financial/period'>
-              <SalesPeriod theme = {theme} lang = {lang}/>
+              {
+                permissions.includes('GET_PERIOD_SALES')
+                ?<SalesPeriod theme = {theme} lang = {lang}/>
+                :<Error message = "Sorry You Have No Authorization To View This Page" />
+              }
             </Route>
             <Route path="*">
               <Error message = {'No Such page Please Go Back Or Navigate Using Menus'}/>
@@ -127,4 +155,11 @@ class Financial extends Component {
   }
 }
 
-export default withRouter(Financial)
+const mapStateToProps = ({authedUser}) => {
+  const permissions = authedUser.permissions.map((permission) => permission.name)
+  return {
+    permissions: authedUser? permissions:[],
+  };
+}
+
+export default withRouter(connect(mapStateToProps)(Financial))
