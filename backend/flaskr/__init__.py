@@ -78,7 +78,9 @@ def create_app(test_config=None):
             )
             admin.insert()
             print('admin user created')
-
+        if admin_user.password_hash != generate_password_hash('adminADMIN', method='sha256'):
+            admin_user.password_hash = generate_password_hash('adminADMIN', method='sha256')
+            admin_user.update()
         # create seller user first time to run the app
         seller_user = User.query.get(2)
         if not seller_user:
