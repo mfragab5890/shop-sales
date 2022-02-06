@@ -1,3 +1,5 @@
+import base64
+
 from flask_cors import CORS
 import dateutil.parser
 import babel
@@ -97,8 +99,10 @@ def create_app(test_config=None):
         app_permissions_count = Permissions.query.count()
         if app_permissions_count < 1:
             permissions = [
+                'GET_ALL_USERS',
                 'CREATE_NEW_USER',
                 'DELETE_USER',
+                'EDIT_USER',
                 'CREATE_NEW_PRODUCT',
                 'EDIT_PRODUCT',
                 'GET_ALL_PRODUCTS',
@@ -120,9 +124,38 @@ def create_app(test_config=None):
                 except Exception as e:
                     print(e)
             print('Permessions Created')
+        else:
+            permissions = [
+                'GET_ALL_USERS',
+                'CREATE_NEW_USER',
+                'DELETE_USER',
+                'EDIT_USER',
+                'CREATE_NEW_PRODUCT',
+                'EDIT_PRODUCT',
+                'GET_ALL_PRODUCTS',
+                'SEARCH_PRODUCTS_BY_ID',
+                'SEARCH_PRODUCTS_BY_TERM',
+                'DELETE_PRODUCT',
+                'CREATE_ORDER',
+                'GET_MONTH_SALES',
+                'GET_PERIOD_SALES',
+                'GET_TODAY_SALES',
+                'GET_USER_TODAY_SALES',
+                'DELETE_ORDER',
+            ]
+            for permission in permissions:
+                permission_query = Permissions.query.filter(Permissions.name == permission).first()
+                if not permission_query:
+                    app_permission = Permissions(name=permission)
+                    try:
+                        app_permission.insert()
+                    except Exception as e:
+                        print(e)
+                print('Permessions Created')
         # Add Permissions To Admin User
         app_permissions = Permissions.query.all()
         print('Adding Permissions to admin User')
+
         for permission in app_permissions:
             admin_permission_query = UserPermissions.query \
                 .filter(UserPermissions.permission_id == permission.id) \
@@ -360,42 +393,39 @@ def create_app(test_config=None):
             if name is not None:
                 user_product.name = name
             sell_price = int(body.get('sellingPrice', None))
-            if name is not None:
-                user_product.name = name
+            if sell_price is not None:
+                user_product.sell_price = sell_price
             buy_price = int(body.get('buyingPrice', None))
-            if name is not None:
-                user_product.name = name
-            qty = int(body.get('quantity', 0))
-            if name is not None:
-                user_product.name = name
-            mini = int(body.get('minimum', 0))
-            maxi = int(body.get('maximum', (qty + 1)))
-            sold = int(body.get('sold', 0))
-            image = body.get('image', '')
+            if buy_price is not None:
+                user_product.buy_price = buy_price
+            qty = int(body.get('quantity', None))
+            if qty is not None:
+                user_product.qty = qty
+            mini = int(body.get('minimum', None))
+            if mini is not None:
+                user_product.mini = mini
+            maxi = int(body.get('maximum', None))
+            if maxi is not None:
+                user_product.maxi = maxi
+            image = body.get('image', None)
+            if image is not None:
+                user_product.image = base64.b64decode(image)
             description = body.get('description', None)
-
-        new_product = Products(name=name,
-                               sell_price=sell_price,
-                               buy_price=buy_price,
-                               qty=qty,
-                               created_by=created_by,
-                               mini=mini,
-                               maxi=maxi,
-                               sold=sold,
-                               image=image,
-                               description=description
-                               )
-
+            if description is not None:
+                user_product.description = description
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'product id can not be null',
+            })
         try:
-            new_product.insert()
+            user_product.update()
             # get new list id
-            user_product = Products.query \
-                .filter(Products.name == name) \
-                .order_by(db.desc(Products.id)).first().format()
+            edited_product = Products.query.get(product_id).format()
             return jsonify({
                 'success': True,
-                'message': 'product created successfully',
-                'newProduct': user_product,
+                'message': 'product edited successfully',
+                'product': edited_product,
             })
         except Exception as e:
             print(e)
