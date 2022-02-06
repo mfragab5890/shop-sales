@@ -2,7 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import { withRouter } from 'react-router-dom'
 import { handleUserLogin } from '../actions/authedUser'
-import { Button, Form, Grid, Header, Image, Message, Segment, Dimmer, Loader } from 'semantic-ui-react'
+import { Button, Form, Grid, Header, Input, Image, Message, Segment, Dimmer, Loader } from 'semantic-ui-react'
 import { handleInitialData, handleInitialDataAfterLogin } from '../actions/shared'
 import { getToken } from '../utils/token'
 
@@ -15,6 +15,7 @@ class Login extends React.Component {
     showError : false,
     error: '',
     loading: true,
+    passwordView: false,
   }
 
   handleFormData = async (e) => {
@@ -115,6 +116,14 @@ class Login extends React.Component {
       })
     }
   }
+  togglePasswordView = () => {
+    this.setState((prevState) => {
+      return {
+        ...prevState,
+        passwordView : !prevState.passwordView,
+      };
+    })
+  }
 
   componentDidUpdate(){
     this.checkAutoFormComplete()
@@ -126,7 +135,7 @@ class Login extends React.Component {
   }
 
   render(){
-    const { formComplete, username, password, showError, error, loading } = this.state
+    const { formComplete, username, password, showError, error, loading, passwordView } = this.state
     if (loading) {
       return (
         <Segment style = {{width:'100%', height:'100%'}}>
@@ -165,17 +174,25 @@ class Login extends React.Component {
                   value = {username}
                   onChange = {this.handleFormData}
                 />
-                <Form.Input
-                  fluid
-                  icon='lock'
-                  name = 'password'
-                  iconPosition='left'
-                  placeholder='Password'
-                  type='password'
-                  value = {password}
-                  onChange = {this.handleFormData}
-                />
-              <Button disabled = {!formComplete} color='teal' fluid size='large' onClick={this.handleFormSubmit}>
+              <Form.Input
+                fluid
+                icon='lock'
+                name = 'password'
+                iconPosition='left'
+                placeholder='Password'
+                type= {passwordView ? 'text' : 'password'}
+                value = {password}
+                onChange = {this.handleFormData}
+                action={{
+                  color: passwordView ? 'grey' : 'black',
+                  icon: passwordView ? 'eye slash outline' : 'eye',
+                  onClick:this.togglePasswordView
+                }}
+                actionPosition='right'
+              >
+
+                </Form.Input>
+                <Button disabled = {!formComplete} color='teal' fluid size='large' onClick={this.handleFormSubmit}>
                   Login
                 </Button>
               </Segment>

@@ -65,7 +65,7 @@ class Sales extends Component {
     return (
       <Segment>
 
-        <Menu inverted = {theme === 'black'? true : false} color={theme} attached='top' pointing>
+        <Menu inverted = {theme === 'black'? true : false} color={theme !== 'basic' ? theme : null} attached='top' pointing>
           {
             permissions.includes('CREATE_ORDER') && permissions.includes('SEARCH_PRODUCTS_BY_ID') && permissions.includes('SEARCH_PRODUCTS_BY_TERM')
             ?
@@ -92,7 +92,7 @@ class Sales extends Component {
           }
         </Menu>
 
-        <Segment color={theme}>
+        <Segment color={theme !== 'basic' ? theme : null}>
           <Switch>
             <Route exact path='/sales'>
               <Redirect to = '/sales/new' />

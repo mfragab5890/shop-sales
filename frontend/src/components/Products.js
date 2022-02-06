@@ -91,7 +91,7 @@ class Products extends Component {
 
 
         </Menu>
-        <Segment color={theme}>
+        <Segment color={theme !== 'basic' ? theme : null}>
           <Switch>
             <Route exact path='/products'>
               <Redirect to = '/products/new' />

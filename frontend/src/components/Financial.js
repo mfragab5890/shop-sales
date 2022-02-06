@@ -79,7 +79,7 @@ class Financial extends Component {
     return (
       <Segment>
 
-        <Menu inverted = {theme === 'black'? true : false} color={theme} attached='top' pointing>
+        <Menu inverted = {theme === 'black'? true : false} color={theme !== 'basic' ? theme : null} attached='top' pointing>
           {
             permissions.includes('GET_TODAY_SALES')
             ?
@@ -118,7 +118,7 @@ class Financial extends Component {
           }
         </Menu>
 
-        <Segment color={theme}>
+        <Segment color={theme !== 'basic' ? theme : null}>
           <Switch>
             <Route exact path='/financial'>
               <Redirect to = '/financial/today' />

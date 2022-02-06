@@ -7,7 +7,7 @@ import Products from './Products'
 import Error from './Error'
 import { Route, Switch, Redirect } from 'react-router-dom'
 import { connect } from 'react-redux'
-
+import AdminPanel from './AdminPanel'
 class AppBody extends Component {
   render() {
     const { theme, lang, permissions, loadingBar } = this.props
@@ -43,6 +43,15 @@ class AppBody extends Component {
                 return (
                   permissions.includes('CREATE_NEW_PRODUCT') || permissions.includes('GET_ALL_PRODUCTS')
                   ? <Products theme = {theme} lang = {lang}/>
+                  : <Error message = "Sorry You Have No Authorization To View This Page" />
+                  );
+                }
+              }
+            />
+          <Route path='/admin' render ={() =>{
+                return (
+                  permissions.includes('CREATE_NEW_USER') || permissions.includes('DELETE_USER') || permissions.includes('EDIT_USER')
+                  ? <AdminPanel theme = {theme} lang = {lang}/>
                   : <Error message = "Sorry You Have No Authorization To View This Page" />
                   );
                 }

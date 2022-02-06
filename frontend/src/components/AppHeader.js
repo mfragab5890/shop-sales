@@ -101,7 +101,7 @@ class AppHeader extends React.Component {
     return (
       <div>
         <Grid centered columns = {3} textAlign='center' verticalAlign='middle' inverted>
-          <Grid.Row centered stretched color={theme}>
+          <Grid.Row centered stretched color={theme !== 'basic' ? theme : null}>
             <Grid.Column width={3} >
               <Image circular size = 'mini' src='/logo.png' centered />
             </Grid.Column>

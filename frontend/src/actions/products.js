@@ -85,7 +85,7 @@ export const handleEditProduct = (product, authedId) => {
     dispatch(showLoading())
     return editOldProduct(product,authedId).then(res => {
       if (res.success) {
-        dispatch(editProduct(product))
+        dispatch(editProduct(res.product))
       }
       dispatch(hideLoading())
       return res;

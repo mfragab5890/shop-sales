@@ -84,7 +84,7 @@ export const addNewProduct = (newProduct) => {
 }
 export const editOldProduct = (product, created_by) => {
   return fetch(`${api}/products/edit`, {
-    method: 'POST',
+    method: 'PATCH',
     headers: {
       ...headers,
       'Content-Type': 'application/json',

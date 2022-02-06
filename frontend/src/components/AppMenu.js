@@ -17,6 +17,9 @@ class AppMenu extends Component {
     if (name === 'Products') {
       return this.props.history.push('/products')
     }
+    if (name === 'Admin') {
+      return this.props.history.push('/Admin')
+    }
 
   }
 
@@ -30,6 +33,9 @@ class AppMenu extends Component {
     }
     if (location.includes('products')) {
       this.setState({ activeItem: 'Products' })
+    }
+    if (location.includes('admin')) {
+      this.setState({ activeItem: 'Admin' })
     }
 
   }
@@ -55,6 +61,12 @@ class AppMenu extends Component {
         return this.setState({ activeItem: 'Products' })
       }
     }
+    if (location.includes('admin')) {
+      const { activeItem } = this.state
+      if (activeItem !== 'Admin') {
+        return this.setState({ activeItem: 'Admin' })
+      }
+    }
 
   }
 
@@ -65,16 +77,18 @@ class AppMenu extends Component {
       AR: {
         firstTab: 'المبيعات',
         secondTab: 'المالية',
-        thirdTab: 'المنتجات'
+        thirdTab: 'المنتجات',
+        fourthTab: 'الادارة',
       },
       EN:{
         firstTab: 'Sales',
         secondTab: 'Financial',
-        thirdTab: 'Products'
+        thirdTab: 'Products',
+        fourthTab: 'Admin',
       }
     }
     return (
-      <Menu inverted = {theme !== 'basic'? true : false} color = {theme} icon='labeled' compact vertical pointing >
+      <Menu inverted = {theme !== 'basic'? true : false} color={theme !== 'basic' ? theme : null} icon='labeled' compact vertical pointing >
         {
           permissions.includes('CREATE_ORDER') && permissions.includes('SEARCH_PRODUCTS_BY_ID')
           ?
@@ -83,7 +97,7 @@ class AppMenu extends Component {
             active={activeItem === 'Sales'}
             onClick={this.handleItemClick}
           >
-            <Icon name='shopping cart' />
+            <Icon inverted = {theme !== 'basic'? true : false} name='shopping cart' />
             {myScript[lang].firstTab}
           </Menu.Item>
           :null
@@ -96,7 +110,7 @@ class AppMenu extends Component {
             active={activeItem === 'Financial'}
             onClick={this.handleItemClick}
           >
-            <Icon name='calculator' />
+            <Icon inverted = {theme !== 'basic'? true : false} name='calculator' />
             {myScript[lang].secondTab}
           </Menu.Item>
           :null
@@ -109,8 +123,25 @@ class AppMenu extends Component {
             active={activeItem === 'Products'}
             onClick={this.handleItemClick}
           >
-            <Icon name='gem' />
+            <Icon inverted = {theme !== 'basic'? true : false} name='gem' />
             {myScript[lang].thirdTab}
+          </Menu.Item>
+          :null
+        }
+        {
+          permissions.includes('CREATE_NEW_USER') || permissions.includes('DELETE_USER') || permissions.includes('EDIT_USER')
+          ?
+          <Menu.Item
+            name={myScript.EN.fourthTab}
+            active={activeItem === 'Admin'}
+            onClick={this.handleItemClick}
+          >
+          <Icon.Group size = 'big'>
+            <Icon inverted = {theme !== 'basic'? true : false} name='shield' />
+            <Icon inverted = {theme !== 'basic'? true : false} corner='bottom right' name='setting' />
+          </Icon.Group>
+          <br/>
+            {myScript[lang].fourthTab}
           </Menu.Item>
           :null
         }

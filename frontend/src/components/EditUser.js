@@ -1,8 +1,9 @@
 import React, { Component } from 'react'
-import { Segment, Form, Header, Image, Message, Dimmer, Loader, Button, Icon } from 'semantic-ui-react'
+import { Segment, Form, Header, Card, Image, Message, Dimmer, Loader } from 'semantic-ui-react'
 import bwipjs from 'bwip-js'
 import { handleEditProduct } from '../actions/products'
 import { connect } from 'react-redux'
+import ProductView from './ProductView'
 
 class ProductEdit extends Component {
   state = {
@@ -58,9 +59,10 @@ class ProductEdit extends Component {
     minimum: 0,
     maximum: '',
     image: '',
-    error: '',
-    editedProduct: null,
-    message: null,
+    newImage : '',
+    barcodeImage: '',
+    product: null,
+    error: ''
   }
 
   onNameChange = async (e) => {
@@ -135,11 +137,31 @@ class ProductEdit extends Component {
     })
   }
 
+  handleBarcodeGenerator = async (value) => {
+    const newValue = value.toString()
+    try {
+      // The return value is the canvas element
+      await bwipjs.toCanvas('mycanvas', {
+                bcid:        'code128',       // Barcode type
+                text:        newValue,    // Text to encode
+                scale:       2,               // 2x scaling factor
+                height:      10,              // Bar height, in millimeters
+                includetext: true,            // Show human-readable text
+                textxalign:  'center',        // Always good to set this
+            });
+      await this.setState({
+        barcodeImage : this.canavasRef.toDataURL()
+      })
+    } catch (e) {
+        // `e` may be a string or Error object
+    }
+
+  }
+
   handleProductEdit = (e) => {
     e.preventDefault()
     const { name, description, buyingPrice, sellingPrice, quantity, minimum, maximum, image } = this.state
-    const { lang, dispatch, authedId, product } = this.props
-
+    const { lang, dispatch } = this.props
     if (name === '') {
       const error = this.state.myScript[lang].error.name
       return this.setState({
@@ -170,73 +192,55 @@ class ProductEdit extends Component {
         error: error
       });
     }
-
-    let oldImage = product.image
-    .replace("b'", "data:image/jpg;base64,")
-    .slice(0, -1)
-
-    let editedProduct = {}
-
-    if (image === oldImage || image === '/logo.png') {
-      editedProduct = {
-        id: product.id,
-        name,
-        description,
-        buyingPrice,
-        sellingPrice,
-        quantity,
-        minimum,
-        maximum,
-      }
-    }
-    else {
-      editedProduct = {
-        id: product.id,
-        name,
-        description,
-        buyingPrice,
-        sellingPrice,
-        quantity,
-        minimum,
-        maximum,
-        image: image.split(',')[1]
-      }
+    const newProduct = {
+      name,
+      description,
+      buyingPrice,
+      sellingPrice,
+      quantity,
+      minimum,
+      maximum,
+      image: image.split(',')[1]
     }
 
-    dispatch(handleEditProduct(editedProduct, authedId)).then((value) => {
+    dispatch(handleEditProduct(newProduct)).then(async (value) => {
+      await this.setState({
+        product: value.newProduct,
+      })
+      await this.handleBarcodeGenerator(value.newProduct.id)
+      let newImage = value.newProduct.image
+      newImage = await newImage.replace("b'", "data:image/jpg;base64,")
+      newImage = await newImage.slice(0, -1)
       this.setState({
-        message: {
-          success: value.success,
-          text: value.mesage,
-        }
+        newImage: newImage
+      })
+
+    })
+    .then(() => {
+      this.setState({
+        name: '',
+        description: '',
+        buyingPrice: '',
+        sellingPrice: '',
+        quantity: '',
+        minimum: 0,
+        maximum: '',
+        image: '',
       })
     })
-
   }
-  componentDidMount = async () => {
-    const { product } = this.props
-    const image = product.image !== ''
-                   ?
-                     product.image
-                     .replace("b'", "data:image/jpg;base64,")
-                     .slice(0, -1)
-                   : '/logo.png'
+
+  componentDidMount=async () => {
+    this.handleBarcodeGenerator(31)
     await this.setState({
-      name: product.name,
-      description : product.description,
-      sellingPrice : product.sell_price,
-      buyingPrice : product.buy_price,
-      quantity : product.qty,
-      minimum : product.mini,
-      maximum : product.maxi,
-      image: image,
+      barcodeImage : this.canavasRef.toDataURL()
     })
   }
 
   render() {
     const { theme, lang, loadingBar } = this.props
-
     const {
+      product,
       myScript,
       error,
       sellingPrice,
@@ -244,12 +248,11 @@ class ProductEdit extends Component {
       description,
       buyingPrice,
       quantity,
+      barcodeImage,
       minimum,
       maximum,
-      image,
-      message,
+      newImage
      } = this.state
-
      if (loadingBar) {
        return (
          <Segment style = {{width:'100%', height:'100%'}}>
@@ -260,11 +263,10 @@ class ProductEdit extends Component {
          </Segment>
        )
      }
-
      return (
        <Segment>
         <Header as='h1' color={theme} textAlign='center' >
-          {lang === 'EN'? `Edit Product: ${name}`  : `تعديل المنتج : ${name}`}
+          {lang === 'EN'? `Edit Product: ${product.name}`  : `تعديل المنتج : ${product.name}`}
         </Header>
 
         <Form error = {error ? true : false}>
@@ -343,61 +345,33 @@ class ProductEdit extends Component {
             accept = "image/*"
           />
           <Form.Field>
-            <Image
-              size = 'small'
-              centered
-              src={image}
-            />
-          </Form.Field>
-          <Form.Field>
             {
-              message
-              ?(
-                message.success
-                ?
-                  <Message
-                    success
-                    header='Action Completed'
-                    content={message.text}
-                  />
-                :
-                <Message
-                  error
-                  header='Action Forbidden'
-                  content={message.text}
-                />
-              )
-
+              this.state.image !== ''
+              ?(<Image src={this.state.image} size='small' centered />)
               :null
             }
-            {
-              error !== ''
-              ?
-                <Message
-                  error
-                  header='Action Forbidden'
-                  content={error}
-                />
-              : null
-            }
-            <Button fluid color='green' onClick={this.handleProductEdit}>
-              <Icon name='edit' /> {myScript[lang].btns.edit}
-            </Button>
           </Form.Field>
-
-
+          <Form.Button
+            content={myScript[lang].btns.submit}
+            attached='bottom'
+            onClick = {this.handleNewProduct}
+          />
+            <Message
+              error
+              header='Action Forbidden'
+              content={error}
+            />
         </Form>
+        <canvas id="mycanvas" style={{padding:'3px', margin: '3px', display: 'none'}}  ref={el => (this.canavasRef = el)} />
+        {
+          product &&
+          <Segment textAlign = 'center'>
+            <ProductView theme = {theme} lang = {lang} product = {product}/>
+          </Segment>
+        }
       </Segment>
     )
   }
 }
 
-const mapStateToProps = ({authedUser, loadingBar}) => {
-  const authedId = authedUser.id
-  return {
-    loadingBar: loadingBar.default === 1? true : false,
-    authedId,
-  };
-}
-
-export default connect(mapStateToProps)(ProductEdit)
+export default connect()(ProductEdit)

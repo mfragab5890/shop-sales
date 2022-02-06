@@ -6,7 +6,6 @@ import { connect } from 'react-redux'
 import { Route, Redirect, withRouter} from 'react-router-dom'
 import Main from './Main'
 import Login from './Login'
-import SignUp from './SignUp'
 import { checkServer } from '../utils/api'
 import Error from './Error'
 class App extends Component {
@@ -55,10 +54,6 @@ class App extends Component {
       return (
         <Fragment>
           <LoadingBar />
-          <Route exact path='/sign-up' render ={() => (
-              <SignUp prevLocation = {prevLocation} />
-            )}
-          />
           <Route exact path='/log-in' render ={() => (
               <Login prevLocation = {prevLocation} />
             )}

@@ -1,16 +1,17 @@
 import React, { Component } from 'react'
-import { Segment, Image, Card, Button, Accordion, Icon, Message, List } from 'semantic-ui-react'
+import { Segment, Image, Card, Button, Accordion, Icon, Message, List, Modal, Header } from 'semantic-ui-react'
 import bwipjs from 'bwip-js'
 import { handleDeleteProduct } from '../actions/products'
 import { connect } from 'react-redux'
 import BarcodeToPrint from './BarcodeToPrint'
-
+import ProductEdit from './ProductEdit'
 class ProductView extends Component {
   state = {
     barcodeImage : '',
     activeIndex: 1,
     message: '',
     success: true,
+    productId: ''
   }
 
   handleDetailsClick = (e, titleProps) => {
@@ -70,6 +71,12 @@ class ProductView extends Component {
     }
   }
 
+  setOpen = (value) => {
+    this.setState({
+        productId:value
+      })
+  }
+
   componentDidMount = async () => {
     const { id } = this.props.product
     await this.handleBarcodeGenerator(id)
@@ -81,7 +88,7 @@ class ProductView extends Component {
   render() {
 
     const { product, theme, lang, permissions } = this.props
-    const { barcodeImage, activeIndex, message, success } = this.state
+    const { barcodeImage, activeIndex, message, success, productId } = this.state
     const myScript = {
       EN: {
         description: 'Description',
@@ -191,9 +198,26 @@ class ProductView extends Component {
             {
               permissions.includes('EDIT_PRODUCT')
               &&
-              <Button basic color='green'>
-                {myScript[lang].btns.edit}
-              </Button>
+              <Modal
+                closeIcon
+                open={productId === product.id ? true : false}
+                trigger={
+                  <Button basic color='green'>
+                    {myScript[lang].btns.edit}
+                  </Button>
+                }
+                onClose={() => this.setOpen('')}
+                onOpen={() => this.setOpen(product.id)}
+              >
+                <Header icon='archive' content={product.id + ' || ' + product.name} />
+                <Modal.Content>
+                  <ProductEdit
+                    theme = {theme}
+                    lang = {lang}
+                    product = {product}
+                  />
+                </Modal.Content>
+              </Modal>
             }
             {
               permissions.includes('DELETE_PRODUCT')
@@ -203,6 +227,7 @@ class ProductView extends Component {
               </Button>
             }
           </div>
+
         </Card.Content>
       </Card>
 
