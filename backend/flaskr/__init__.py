@@ -205,6 +205,11 @@ def create_app(test_config=None):
             print(e)
             abort(400)
 
+    # ----------------------------------------------------------------------------#
+    # Users Endpoints.
+    # ----------------------------------------------------------------------------#
+
+    # get authed user data endpoint.
     @app.route('/', methods=[ 'GET' ])
     @jwt_required()
     def get_home_data():
@@ -255,6 +260,30 @@ def create_app(test_config=None):
             })
             return response
 
+    # get all users endpoint.
+    # permission: GET_ALL_USERS
+    @app.route('/users/all', methods=[ 'GET' ])
+    @jwt_required()
+    def get_all_users():
+        users_query = User.query.all()
+        try:
+            users = []
+            for user_query in users_query:
+                user = user_query.format_no_password()
+                user_permissions = [ Permissions.query.get(user_permission[ 'permission_id' ]).format() for user_permission
+                                     in user[ 'permissions' ] ]
+                user[ 'permissions' ] = user_permissions
+                users.append(user)
+            return jsonify({
+                'success': True,
+                'users': users,
+            })
+        except Exception as e:
+            print(e)
+            abort(400)
+
+    # create new user endpoint.
+    # permission: CREATE_NEW_USER
     @app.route('/user/new', methods=[ 'POST' ])
     @jwt_required()
     def signup():
@@ -305,7 +334,9 @@ def create_app(test_config=None):
 
         return 'Signup'
 
-    @app.route('/user/<int:user_id>', methods=[ 'DELETE' ])
+    # delete user endpoint.
+    # permission: DELETE_USER
+    @app.route('/users/delete/<int:user_id>', methods=[ 'DELETE' ])
     @jwt_required()
     def delete_user(user_id):
         if user_id != 1:
@@ -325,6 +356,67 @@ def create_app(test_config=None):
                 'message': 'Warning! You Are Trying To Delete the Admin User This User Can Not Be Deleted',
             })
 
+    # edit user endpoint.
+    # permission: EDIT_USER
+    @app.route('/users/edit', methods=[ 'PATCH' ])
+    @jwt_required()
+    def edit_user():
+        body = request.get_json()
+        user_id = body.get('id', None)
+        if user_id != 1:
+            user = User.query.get(user_id)
+            username = body.get('username', None)
+            if username is not None:
+                user.username = username
+            email = body.get('email', None)
+            if email is not None:
+                user.email = email
+            old_password = body.get('oldPassword', None)
+            if old_password is not None:
+                if check_password_hash(user.password_hash, old_password):
+                    password = body.get('newPassword', None)
+                    if password is not None:
+                        user.password_hash = generate_password_hash(password, method='sha256')
+            user_permissions = body.get('userPermissions', None)
+            if user_permissions is not None:
+                for user_permission in user_permissions:
+                    permission_id = Permissions.query.filter(Permissions.name == user_permission).first().id
+                    user_permission_query = UserPermissions.query\
+                        .filter(UserPermissions.user_id == user_id)\
+                        .filter(UserPermissions.permission_id == permission_id).first()
+                    if user_permission_query is None:
+                        new_permission = UserPermissions(
+                            user_id=user_id,
+                            permission_id=permission_id,
+                            created_by=get_jwt_identity(),
+                        )
+                        try:
+                            new_permission.insert()
+                        except Exception as e:
+                            print(e)
+                            abort(400)
+
+            try:
+                user.insert()
+                edited_user = User.query.get(user_id).format_no_password()
+                user_permissions = [ Permissions.query.get(user_permission[ 'permission_id' ]).format() for
+                                     user_permission
+                                     in edited_user[ 'permissions' ] ]
+                edited_user[ 'permissions' ] = user_permissions
+                return jsonify({
+                    'success': True,
+                    'message': 'user of ID: ' + str(user_id) + ' edited successfully',
+                    'editedUser': edited_user,
+                })
+            except Exception as e:
+                print(e)
+                abort(400)
+        else:
+            return jsonify({
+                'success': True,
+                'message': 'Warning! You Are Trying To Delete the Admin User This User Can Not Be Deleted',
+            })
+
     @app.route('/logout', methods=[ 'GET' ])
     def logout():
         response = jsonify({
@@ -333,6 +425,10 @@ def create_app(test_config=None):
         })
         unset_jwt_cookies(response)
         return response
+
+    # ----------------------------------------------------------------------------#
+    # Products Endpoints.
+    # ----------------------------------------------------------------------------#
 
     # create new product endpoint. this end point should take:
     # name, sell_price, buy_price, qty, created_by, mini, maxi, sold, image, description
@@ -530,6 +626,10 @@ def create_app(test_config=None):
                     print(e)
                     abort(422)
 
+    # ----------------------------------------------------------------------------#
+    # Orders Endpoints.
+    # ----------------------------------------------------------------------------#
+
     # create new order endpoint. this end point should take:
     # order items, user, total
     # permission: CREATE_ORDER
@@ -692,6 +792,15 @@ def create_app(test_config=None):
             abort(400, 'No Order ID Entered')
         else:
             user_order = Orders.query.get(order_id)
+            for item in user_order.items:
+                product = Products.query.get(item.product_id)
+                product.sold -= int(item.qty)
+                product.qty += int(item.qty)
+                try:
+                    product.update()
+                except Exception as e:
+                    print(e)
+                    abort(422)
             try:
                 user_order.delete()
 
