@@ -363,20 +363,20 @@ def create_app(test_config=None):
     def edit_user():
         body = request.get_json()
         user_id = body.get('id', None)
+        user = User.query.get(user_id)
+        username = body.get('username', None)
+        if username is not None:
+            user.username = username
+        email = body.get('email', None)
+        if email is not None:
+            user.email = email
+        old_password = body.get('oldPassword', None)
+        if old_password is not None:
+            if check_password_hash(user.password_hash, old_password):
+                password = body.get('newPassword', None)
+                if password is not None:
+                    user.password_hash = generate_password_hash(password, method='sha256')
         if user_id != 1:
-            user = User.query.get(user_id)
-            username = body.get('username', None)
-            if username is not None:
-                user.username = username
-            email = body.get('email', None)
-            if email is not None:
-                user.email = email
-            old_password = body.get('oldPassword', None)
-            if old_password is not None:
-                if check_password_hash(user.password_hash, old_password):
-                    password = body.get('newPassword', None)
-                    if password is not None:
-                        user.password_hash = generate_password_hash(password, method='sha256')
             user_permissions = body.get('userPermissions', None)
             if user_permissions is not None:
                 for user_permission in user_permissions:
@@ -411,11 +411,6 @@ def create_app(test_config=None):
             except Exception as e:
                 print(e)
                 abort(400)
-        else:
-            return jsonify({
-                'success': True,
-                'message': 'Warning! You Are Trying To Delete the Admin User This User Can Not Be Deleted',
-            })
 
     @app.route('/logout', methods=[ 'GET' ])
     def logout():
