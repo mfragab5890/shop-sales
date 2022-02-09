@@ -396,21 +396,21 @@ def create_app(test_config=None):
                             print(e)
                             abort(400)
 
-            try:
-                user.insert()
-                edited_user = User.query.get(user_id).format_no_password()
-                user_permissions = [ Permissions.query.get(user_permission[ 'permission_id' ]).format() for
-                                     user_permission
-                                     in edited_user[ 'permissions' ] ]
-                edited_user[ 'permissions' ] = user_permissions
-                return jsonify({
-                    'success': True,
-                    'message': 'user of ID: ' + str(user_id) + ' edited successfully',
-                    'editedUser': edited_user,
-                })
-            except Exception as e:
-                print(e)
-                abort(400)
+        try:
+            user.insert()
+            edited_user = User.query.get(user_id).format_no_password()
+            user_permissions = [ Permissions.query.get(user_permission[ 'permission_id' ]).format() for
+                                 user_permission
+                                 in edited_user[ 'permissions' ] ]
+            edited_user[ 'permissions' ] = user_permissions
+            return jsonify({
+                'success': True,
+                'message': 'user of ID: ' + str(user_id) + ' edited successfully',
+                'editedUser': edited_user,
+            })
+        except Exception as e:
+            print(e)
+            abort(400)
 
     @app.route('/logout', methods=[ 'GET' ])
     def logout():

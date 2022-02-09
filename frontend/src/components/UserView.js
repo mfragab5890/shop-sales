@@ -135,7 +135,7 @@ class UserView extends Component {
       })
     }
     const {newPassword, confirmNewPassword} = this.state
-    if (newPassword === confirmNewPassword) {
+    if (newPassword === confirmNewPassword && newPassword !== '') {
       await this.setState({
         passwordMatch : true
       })
@@ -334,8 +334,6 @@ class UserView extends Component {
             {
               permissions.includes('EDIT_USER')
               &&
-              user.id !== 1
-              &&
               <Modal
                 closeIcon
                 open={userId === user.id ? true : false}
@@ -408,6 +406,7 @@ class UserView extends Component {
                       <label>{myScript[lang].permissions}</label>
                     </Form.Field>
                     {
+                      user.id != 1 &&
                       permissionsNames.map((permission) => {
                         return (
                           <Form.Field key = {permission.id}>
