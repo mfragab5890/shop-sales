@@ -5,7 +5,7 @@ import { handleAddProduct } from '../actions/products'
 import { connect } from 'react-redux'
 import ProductView from './ProductView'
 
-class NewProduct extends Component {
+class NewUser extends Component {
   state = {
     myScript: {
       EN: {
@@ -263,110 +263,7 @@ class NewProduct extends Component {
     }
     return (
       <Segment>
-        <Header as='h1' color={theme} textAlign='center' >
-          {lang === 'EN'? 'Add New Product' : 'اضافة منتج جديد'}
-        </Header>
-
-        <Form error = {error ? true : false}>
-          <Form.Field
-            required
-            control='input'
-            type='text'
-            label = {myScript[lang].name}
-            placeholder='Product Name'
-            value = {name}
-            onChange = {this.onNameChange}
-          />
-          <Form.Field
-            required
-            control='input'
-            type='text'
-            label = {myScript[lang].description}
-            placeholder='description'
-            value = {description}
-            onChange = {this.onDesChange}
-          />
-          <Form.Field
-            required
-            control='input'
-            type='number'
-            min = {0}
-            label = {myScript[lang].buyingPrice}
-            placeholder='Product buying Price'
-            value = {buyingPrice}
-            onChange = {this.onBuyPriceChange}
-          />
-          <Form.Field
-            required
-            control='input'
-            type='number'
-            min = {0}
-            label = {myScript[lang].sellingPrice}
-            placeholder='Product Selling Price'
-            value = {sellingPrice}
-            onChange = {this.onSellPriceChange}
-          />
-          <Form.Field
-            required
-            control='input'
-            type='number'
-            min = {0}
-            label = {myScript[lang].quantity}
-            placeholder='Current Quantity'
-            value = {quantity}
-            onChange = {this.onQuantityChange}
-          />
-          <Form.Field
-            control='input'
-            type='number'
-            min = {0}
-            label = {myScript[lang].minimum}
-            placeholder='Minimum Stock Quantity'
-            value = {minimum}
-            onChange = {this.onMinChange}
-          />
-          <Form.Field
-            control='input'
-            type='number'
-            min = {0}
-            label = {myScript[lang].maximum}
-            placeholder= 'Maximum Stock Quantity'
-            value = {maximum}
-            onChange = {this.onMaxChange}
-          />
-          <Form.Field
-            control='input'
-            type='file'
-            label = {myScript[lang].image}
-            placeholder= 'Product Image'
-            onChange = {this.onImageChange}
-            accept = "image/*"
-          />
-          <Form.Field>
-            {
-              this.state.image !== ''
-              ?(<Image src={this.state.image} size='small' centered />)
-              :null
-            }
-          </Form.Field>
-          <Form.Button
-            content={myScript[lang].btns.submit}
-            attached='bottom'
-            onClick = {this.handleNewProduct}
-          />
-            <Message
-              error
-              header='Action Forbidden'
-              content={error}
-            />
-        </Form>
-        <canvas id="mycanvas" style={{padding:'3px', margin: '3px', display: 'none'}}  ref={el => (this.canavasRef = el)} />
-        {
-          product &&
-          <Segment textAlign = 'center'>
-            <ProductView theme = {theme} lang = {lang} product = {product}/>
-          </Segment>
-        }
+        
       </Segment>
     )
   }
@@ -379,4 +276,4 @@ const mapStateToProps = ({authedUser, loadingBar}) => {
   };
 }
 
-export default connect(mapStateToProps)(NewProduct)
+export default connect(mapStateToProps)(NewUser)

@@ -1,7 +1,8 @@
-import { getInitialData, getTodayOrders, getMonthOrders, getPageProducts, getUserTodayOrders } from '../utils/api'
+import { getInitialData, getTodayOrders, getMonthOrders, getPageProducts, getUserTodayOrders, getAllUsers } from '../utils/api'
 import { receiveProducts } from '../actions/products'
 import { receiveMonthOrders, receiveTodayOrders, receiveUserTodayOrders } from '../actions/orders'
 import { setAuthedUser} from '../actions/authedUser'
+import { receiveUsers } from '../actions/users'
 import { showLoading, hideLoading } from 'react-redux-loading'
 import { removeToken } from '../utils/token'
 
@@ -13,6 +14,22 @@ export const handleInitialData = () => {
       .then(async (res) => {
         if (res.success) {
           const { authed_user } = res
+          const { users } = await getAllUsers().then(res => {
+            if (res.success) {
+              return res;
+            }
+            else {
+              return {
+                users: [],
+              };
+            }
+          }).catch(err => {
+            console.warn(err);
+            return {
+              users: [],
+            };
+          })
+
           const {products, pages} = await getPageProducts().then(res => {
             if (res.success) {
               return res;
@@ -67,6 +84,7 @@ export const handleInitialData = () => {
             return [];
           })
           dispatch(setAuthedUser(authed_user))
+          dispatch(receiveUsers(users))
           dispatch(receiveProducts({products,pages}))
           dispatch(receiveMonthOrders(monthSales))
           dispatch(receiveTodayOrders(todaySales))
@@ -92,6 +110,22 @@ export const handleInitialDataAfterLogin = () => {
     return getInitialData()
       .then(async (res) => {
         if (res.success) {
+          const { users } = await getAllUsers().then(res => {
+            if (res.success) {
+              return res;
+            }
+            else {
+              return {
+                users: [],
+              };
+            }
+          }).catch(err => {
+            console.warn(err);
+            return {
+              users: [],
+            };
+          })
+
           const {products, pages} = await getPageProducts().then(res => {
             if (res.success) {
               return res;
@@ -145,6 +179,7 @@ export const handleInitialDataAfterLogin = () => {
             console.warn(err);
             return [];
           })
+          dispatch(receiveUsers(users))
           dispatch(receiveProducts({products,pages}))
           dispatch(receiveMonthOrders(monthSales))
           dispatch(receiveTodayOrders(todaySales))

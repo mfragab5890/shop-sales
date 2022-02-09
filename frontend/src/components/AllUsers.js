@@ -1,13 +1,10 @@
 import React, { Component } from 'react'
-import { Segment, Card, Input, Pagination, Message, Header, Dimmer, Loader, Image } from 'semantic-ui-react'
-import ProductView from './ProductView'
+import { Segment, Card, Input, Message, Header, Dimmer, Loader, Image } from 'semantic-ui-react'
 import { connect } from 'react-redux'
-import { handleReceiveProducts } from '../actions/products'
-import { searchProducts } from '../utils/api'
+import UserView from './UserView'
 
-class AllProducts extends Component {
+class AllUsers extends Component {
   state = {
-    page: 1,
     searchTerm: '',
     loading: false,
     results: [],
@@ -36,11 +33,11 @@ class AllProducts extends Component {
       };
     })
     this.setState({
-      typing: setTimeout(() => this.handleProductsSearch(value), 500)
+      typing: setTimeout(() => this.handleUsersSearch(value), 500)
     })
   }
 
-  handleProductsSearch = async (searchTerm) => {
+  handleUsersSearch = async (searchTerm) => {
     if (searchTerm === '') {
       return await this.setState({
         loading: false,
@@ -48,8 +45,19 @@ class AllProducts extends Component {
         noResults: false
       });
     }
-    const results = await searchProducts(searchTerm)
-    if (results.products.length < 1) {
+    const { users } = this.props
+    const searchTermLow = searchTerm.toLowerCase()
+    const results = users.filter((item) => {
+      const username = item.username.toLowerCase()
+      const email = item.email.toLowerCase()
+      if (username.search(searchTermLow) >= 0 || email.search(searchTermLow) >= 0) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    })
+    if (results.length < 1) {
       return await this.setState({
         loading: false,
         results: [],
@@ -59,23 +67,14 @@ class AllProducts extends Component {
 
     await this.setState({
       loading: false,
-      results: results.products,
+      results: results,
       noResults: false
     })
   }
 
-  handlePaginationChange = async (e, { activePage }) => {
-    const { dispatch } = this.props
-    const results  = await dispatch(handleReceiveProducts(activePage))
-    await this.setState({
-      products: results.products,
-      page: activePage
-    })
-  }
-
-  confirmDelete = (productId,message) => {
+  confirmDelete = (userId, message) => {
     this.setState({
-      deleted: message + '-ID: ' + productId ,
+      deleted: message + '-ID: ' + userId ,
     })
     setTimeout(() => this.setState({
       deleted: ''
@@ -84,11 +83,11 @@ class AllProducts extends Component {
 
   render() {
 
-    const { theme, lang, products, pages, loadingBar } = this.props
-    const { page, searchTerm, loading, results, noResults, deleted } = this.state
+    const { theme, lang, users, loadingBar } = this.props
+    const { searchTerm, loading, results, noResults, deleted } = this.state
     const myScript = {
       EN: {
-        header: 'Viewing All Products',
+        header: 'Viewing All Users',
         results: 'Viewing Results for: ',
         noResults: {
           header: 'Sorry This Search Returned No Results',
@@ -96,7 +95,7 @@ class AllProducts extends Component {
         },
       },
       AR: {
-        header: 'مشاهدة جميع المنتجات',
+        header: 'مشاهدة جميع المستخدمين',
         results: 'يتم عرض نتائج البحث لكلمة: ',
         noResults: {
           header: 'عفوا لا يوجد نتائج بحث',
@@ -138,15 +137,6 @@ class AllProducts extends Component {
             <Message.Header>{deleted}</Message.Header>
           </Message>
         }
-        <Pagination
-          activePage={page}
-          onPageChange={this.handlePaginationChange}
-          totalPages={pages}
-          disabled = {pages < 2 || results.length > 0 ? true : false}
-        />
-        <br/>
-        <br/>
-
         {
           noResults
           ? (
@@ -161,19 +151,19 @@ class AllProducts extends Component {
             <Card.Group centered>
               {
                 results.length > 0
-                ? results.map((product) =>
-                    <ProductView
-                      key = {product.id}
-                      product = {product}
+                ? results.map((user) =>
+                    <UserView
+                      key = {user.id}
+                      user = {user}
                       theme = {theme}
                       lang = {lang}
                       confirmDelete = {this.confirmDelete}
                     />
                   )
-                : products.map((product) =>
-                    <ProductView
-                      key = {product.id}
-                      product = {product}
+                : users.map((user) =>
+                    <UserView
+                      key = {user.id}
+                      user = {user}
                       theme = {theme}
                       lang = {lang}
                       confirmDelete = {this.confirmDelete}
@@ -183,23 +173,16 @@ class AllProducts extends Component {
             </Card.Group>
           )
         }
-        <br/>
-        <Pagination
-          activePage={page}
-          onPageChange={this.handlePaginationChange}
-          totalPages={pages}
-          disabled = {pages < 2 || results.length > 0 ? true : false}
-        />
       </Segment>
     )
   }
 }
 
-const mapStateToProps = ({products, loadingBar}) => {
+const mapStateToProps = ({loadingBar, users}) => {
   return {
     loadingBar: loadingBar.default === 1? true : false,
-    ...products
+    users,
   };
 }
 
-export default connect(mapStateToProps)(AllProducts)
+export default connect(mapStateToProps)(AllUsers)

@@ -2,7 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import { withRouter } from 'react-router-dom'
 import { handleUserLogin } from '../actions/authedUser'
-import { Button, Form, Grid, Header, Input, Image, Message, Segment, Dimmer, Loader } from 'semantic-ui-react'
+import { Button, Form, Grid, Header, Image, Message, Segment, Dimmer, Loader } from 'semantic-ui-react'
 import { handleInitialData, handleInitialDataAfterLogin } from '../actions/shared'
 import { getToken } from '../utils/token'
 
@@ -116,6 +116,7 @@ class Login extends React.Component {
       })
     }
   }
+
   togglePasswordView = () => {
     this.setState((prevState) => {
       return {
@@ -188,7 +189,6 @@ class Login extends React.Component {
                   icon: passwordView ? 'eye slash outline' : 'eye',
                   onClick:this.togglePasswordView
                 }}
-                actionPosition='right'
               >
 
                 </Form.Input>

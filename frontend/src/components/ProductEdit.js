@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import { Segment, Form, Header, Image, Message, Dimmer, Loader, Button, Icon } from 'semantic-ui-react'
-import bwipjs from 'bwip-js'
 import { handleEditProduct } from '../actions/products'
 import { connect } from 'react-redux'
 

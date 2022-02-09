@@ -5,6 +5,7 @@ import { handleDeleteProduct } from '../actions/products'
 import { connect } from 'react-redux'
 import BarcodeToPrint from './BarcodeToPrint'
 import ProductEdit from './ProductEdit'
+
 class ProductView extends Component {
   state = {
     barcodeImage : '',
@@ -94,6 +95,7 @@ class ProductView extends Component {
         description: 'Description',
         quantity: 'Quantity',
         sellPrice: 'Selling Price',
+        buyPrice: 'Buying Price',
         sold: 'Sold',
         btns:{
           print: 'Print Barcode',
@@ -106,6 +108,7 @@ class ProductView extends Component {
         description: 'الوصف',
         quantity: 'الكمية',
         sellPrice: 'سعر البيع',
+        buyPrice: 'سعر الشراء',
         sold: 'المبيعات',
         btns:{
           print: 'طباعة الباركود',
@@ -173,6 +176,13 @@ class ProductView extends Component {
                   <List.Content>
                     <List.Header as='a'>{myScript[lang].sellPrice}</List.Header>
                     <List.Description as='a'>{product.sell_price}</List.Description>
+                  </List.Content>
+                </List.Item>
+                <List.Item>
+                  <List.Icon name='pound' size='large' verticalAlign='middle' />
+                  <List.Content>
+                    <List.Header as='a'>{myScript[lang].buyPrice}</List.Header>
+                    <List.Description as='a'>{product.buy_price}</List.Description>
                   </List.Content>
                 </List.Item>
                 <List.Item>

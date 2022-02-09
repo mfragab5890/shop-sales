@@ -5,7 +5,6 @@ import Error from './Error'
 import { connect } from 'react-redux'
 import AllUsers from './AllUsers'
 import NewUser from './NewUser'
-import EditUser from './EditUser'
 
 class AdminPanel extends Component {
   state = { activeItem: 'Users' }
@@ -18,9 +17,6 @@ class AdminPanel extends Component {
     if (name === 'New User') {
       return this.props.history.push('/admin/user/new')
     }
-    if (name === 'Edit User') {
-      return this.props.history.push('/admin/user/edit')
-    }
 
   }
 
@@ -31,9 +27,6 @@ class AdminPanel extends Component {
     }
     if (location.includes('new')) {
       this.setState({ activeItem: 'New User' })
-    }
-    if (location.includes('edit')) {
-      this.setState({ activeItem: 'Edit User' })
     }
 
   }
@@ -52,11 +45,6 @@ class AdminPanel extends Component {
         return this.setState({ activeItem: 'New User' })
       }
     }
-    if (location.includes('edit')) {
-      if (activeItem !== 'Edit User') {
-        return this.setState({ activeItem: 'Edit User' })
-      }
-    }
 
   }
 
@@ -67,12 +55,10 @@ class AdminPanel extends Component {
       AR: {
         firstTab: 'جميع المستخدمين',
         secondTab: 'مستخدم جديد',
-        thirdTab: 'تعديل مستخدم',
       },
       EN:{
         firstTab: 'Users',
         secondTab: 'New User',
-        thirdTab: 'Edit User',
       }
     }
     return (
@@ -80,7 +66,7 @@ class AdminPanel extends Component {
 
         <Menu inverted = {theme === 'black'? true : false} color={theme !== 'basic' ? theme : null} attached='top' pointing>
           {
-            permissions.includes('GET_ALL_USERS') && permissions.includes('DELETE_USER')
+            permissions.includes('GET_ALL_USERS') && permissions.includes('DELETE_USER') && permissions.includes('EDIT_USER')
             ?
             <Menu.Item
               name= {myScript.EN.firstTab}
@@ -103,18 +89,6 @@ class AdminPanel extends Component {
             </Menu.Item>
             : null
           }
-          {
-            permissions.includes('EDIT_USER')
-            ?
-            <Menu.Item
-              name= {myScript.EN.thirdTab}
-              active={activeItem === myScript.EN.thirdTab}
-              onClick={this.handleItemClick}
-            >
-              {myScript[lang].thirdTab}
-            </Menu.Item>
-            : null
-          }
         </Menu>
 
         <Segment color={theme !== 'basic' ? theme : null}>
@@ -133,13 +107,6 @@ class AdminPanel extends Component {
               {
                 permissions.includes('CREATE_NEW_USER')
                 ?<NewUser theme = {theme} lang = {lang}/>
-                :<Error message = "Sorry You Have No Authorization To View This Page" />
-              }
-            </Route>
-            <Route exact path='/admin/user/edit'>
-              {
-                permissions.includes('EDIT_USER')
-                ?<EditUser theme = {theme} lang = {lang}/>
                 :<Error message = "Sorry You Have No Authorization To View This Page" />
               }
             </Route>

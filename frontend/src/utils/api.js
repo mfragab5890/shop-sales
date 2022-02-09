@@ -58,7 +58,7 @@ fetch(`${api}/logout`, { headers })
 
 
 export const saveNewUser = (user) =>
-  fetch(`${api}/user/new`, {
+  fetch(`${api}/users/new`, {
     method: 'POST',
     headers: {
       ...headers,
@@ -68,6 +68,32 @@ export const saveNewUser = (user) =>
       ...user,
     }),
   }).then(res => res.json())
+
+export const getAllUsers = () =>
+fetch(`${api}/users/all`, { headers })
+  .then(res => res.json())
+
+export const removeUser = (userId) =>
+fetch(`${api}/users/delete/${userId}`, {
+    method: 'DELETE',
+    headers: {
+      ...headers,
+      'Content-Type': 'application/json',
+      },
+    }).then(res => res.json())
+
+export const editUser = (user) => {
+  return fetch(`${api}/users/edit`, {
+    method: 'PATCH',
+    headers: {
+      ...headers,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      ...user,
+    }),
+  }).then(res => res.json())
+}
 
 //products APIs
 export const addNewProduct = (newProduct) => {
