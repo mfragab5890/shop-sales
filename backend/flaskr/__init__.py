@@ -267,10 +267,11 @@ def create_app(test_config=None):
     def get_all_users():
         users_query = User.query.all()
         try:
-            users = []
+            users = [ ]
             for user_query in users_query:
                 user = user_query.format_no_password()
-                user_permissions = [ Permissions.query.get(user_permission[ 'permission_id' ]).format() for user_permission
+                user_permissions = [ Permissions.query.get(user_permission[ 'permission_id' ]).format() for
+                                     user_permission
                                      in user[ 'permissions' ] ]
                 user[ 'permissions' ] = user_permissions
                 users.append(user)
@@ -376,13 +377,25 @@ def create_app(test_config=None):
                 password = body.get('newPassword', None)
                 if password is not None:
                     user.password_hash = generate_password_hash(password, method='sha256')
+        # add/remove new permissions
         if user_id != 1:
             user_permissions = body.get('userPermissions', None)
             if user_permissions is not None:
+                user_permissions_query = UserPermissions.query \
+                    .filter(UserPermissions.user_id == user_id).all()
+                # Delete Permission
+                for user_permission in user_permissions_query:
+                    permission_name = Permissions.query \
+                        .filter(Permissions.id == user_permission.permission_id).first().name
+                    if permission_name not in user_permissions:
+                        permission_delete_query = UserPermissions.query \
+                            .filter(UserPermissions.user_id == user_id) \
+                            .filter(UserPermissions.permission_id == user_permission.permission_id).delete()
+                # Add Permissions
                 for user_permission in user_permissions:
                     permission_id = Permissions.query.filter(Permissions.name == user_permission).first().id
-                    user_permission_query = UserPermissions.query\
-                        .filter(UserPermissions.user_id == user_id)\
+                    user_permission_query = UserPermissions.query \
+                        .filter(UserPermissions.user_id == user_id) \
                         .filter(UserPermissions.permission_id == permission_id).first()
                     if user_permission_query is None:
                         new_permission = UserPermissions(
