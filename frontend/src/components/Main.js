@@ -9,7 +9,7 @@ import LoadingBar from 'react-redux-loading'
 class Main extends Component {
   state = {
     theme: 'black',
-    lang: 'AR',
+    lang: 'EN',
   }
 
   handleThemeChange = (theme) => {

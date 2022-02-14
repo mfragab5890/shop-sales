@@ -8,6 +8,7 @@ import Main from './Main'
 import Login from './Login'
 import { checkServer } from '../utils/api'
 import Error from './Error'
+
 class App extends Component {
   state = {
     prevLocation: '',
