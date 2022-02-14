@@ -336,10 +336,6 @@ def create_app(test_config=None):
             print(e)
             abort(400)
 
-        # add the new user to the database
-
-        return 'Signup'
-
     # delete user endpoint.
     # permission: DELETE_USER
     @app.route('/users/delete/<int:user_id>', methods=[ 'DELETE' ])
