@@ -6,14 +6,12 @@ export default class ReceiptItems extends Component {
     editQantity: false,
     quantity: 0,
     name: '',
-    price:''
   }
 
   componentDidMount = async () => {
     const productId = this.props.item.product_id
     await getProductById(productId)
-    .then(({sell_price, name}) => this.setState({
-      price: sell_price,
+    .then(({name}) => this.setState({
       name: name,
     }))
 
@@ -53,7 +51,7 @@ export default class ReceiptItems extends Component {
   render() {
 
     const { item } = this.props
-    const { editQantity, quantity, name, price } = this.state
+    const { editQantity, quantity, name } = this.state
 
     return (
       <Table.Row>
@@ -74,7 +72,7 @@ export default class ReceiptItems extends Component {
               : item.qty
             }
           </Table.Cell>
-          <Table.Cell singleLine>{price}</Table.Cell>
+          <Table.Cell singleLine>{item.total_price/item.qty}</Table.Cell>
           <Table.Cell singleLine>{item.total_price}</Table.Cell>
       </Table.Row>
     )

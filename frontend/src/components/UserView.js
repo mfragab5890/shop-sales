@@ -6,8 +6,6 @@ import { connect } from 'react-redux'
 class UserView extends Component {
   state = {
     activeIndex: 1,
-    message: '',
-    success: true,
     userId: '',
     username: '',
     oldPassword: '',
@@ -19,6 +17,8 @@ class UserView extends Component {
     prevLang: '',
     passwordView: false,
     passwordMatch: false,
+    message: '',
+    error: '',
     myScript: {
       EN: {
         username: 'Username',
@@ -88,7 +88,6 @@ class UserView extends Component {
           confirmNewPassword: 'تأكيد كلمة السر الجديدة',
         }
       },
-
     },
   }
 
@@ -142,7 +141,8 @@ class UserView extends Component {
     }
     else {
       await this.setState({
-        formComplete : false
+        formComplete : false,
+        passwordMatch : true
       })
     }
 
@@ -195,26 +195,37 @@ class UserView extends Component {
       oldPassword,
       newPassword,
       confirmNewPassword,
-      userPermissions
+      userPermissions,
     } = this.state
     const { lang, user, dispatch } = this.props
     let message = ''
     if (username === '') {
       message = lang === 'EN' ? 'Username Can Not Be Empty' : 'يجب ادخال اسم المستخدم'
-      return alert(message);
+      return this.setState({
+        error: message,
+      })
     }
     if (email === '') {
       message = lang === 'EN' ? 'Password Can Not Be Empty' : 'يجب ادخال الإميل'
-      return alert(message);
+      return this.setState({
+        error: message,
+      })
     }
     if (oldPassword !== '' && newPassword !== '' && newPassword !== confirmNewPassword) {
       message = lang === 'EN' ? 'New Password & Confirmation Do Not Match' : 'كلمة السر الجديدة لا تطابق التاكيد لكلمة السر'
-      return alert(message);
+      return this.setState({
+        error: message,
+      })
     }
     if (oldPassword === '' && (newPassword !== '' || confirmNewPassword !== '') ) {
       message = lang === 'EN' ? 'Old Password Must Not Be Empty To Change Password' : 'يجب كتابة كلة السر القديمة لتغيير كلمة السر'
-      return alert(message);
+      return this.setState({
+        error: message,
+      })
     }
+    this.setState({
+      error: '',
+    })
 
     const editedUser = {
       ...user,
@@ -224,7 +235,49 @@ class UserView extends Component {
       oldPassword,
       userPermissions
     }
-    return dispatch(handleEditUser(editedUser))
+    return dispatch(handleEditUser(editedUser)).then(res => {
+      if (res.success) {
+        return this.setState({
+          message: res.message,
+          error:'',
+        });
+      }
+      else {
+        return this.setState({
+          message: '',
+          error:res.message,
+        });
+      }
+    })
+  }
+
+  handleRemoveUser = () => {
+    const { lang, dispatch, authedId, user } = this.props
+    const userId = user.id
+    if (userId !== authedId) {
+      dispatch(handleDeleteUser(userId, authedId)).then(res => {
+        if (res.success) {
+          return this.setState({
+            message: this.res.message,
+            error:'',
+          });
+        }
+        else {
+          return this.setState({
+            message: '',
+            error:res.message,
+          });
+        }
+      })
+    }
+    else {
+      const message = lang === 'EN'
+      ? 'You Are Trying To Delete Your User! Are You Sure You Want To Delete?'
+      : 'أنت تحاول حذف المستخدم الخاص بك! هل انت متاكد انك تريد الاستمرار بالحذف؟'
+      if (window.confirm(message)) {
+        dispatch(handleDeleteUser(userId, authedId))
+      }
+    }
   }
 
   componentDidMount(){
@@ -265,11 +318,11 @@ class UserView extends Component {
  }
 
   render() {
-    const { user, theme, lang, permissions, } = this.props
+    const { user, theme, lang, permissions } = this.props
     const {
       activeIndex,
       message,
-      success,
+      error,
       userId,
       username,
       email,
@@ -286,13 +339,24 @@ class UserView extends Component {
     return (
       <Card color={theme}>
         {
-          message !== '' &&
-          <Message
-            success = {success}
-            warning = {!success}
-            header={'success: ' + success}
-            content= {message}
-          />
+          message !== ''
+          ?<Message positive>
+            <Message.Header>User Added</Message.Header>
+            <p>
+              {message}
+            </p>
+          </Message>
+          :null
+        }
+        {
+          error !== ''
+          ?<Message negative>
+            <Message.Header>An Error Occured!</Message.Header>
+            <p>
+              {error}
+            </p>
+          </Message>
+          :null
         }
         <Card.Content>
           <Card.Header>
@@ -406,7 +470,7 @@ class UserView extends Component {
                       <label>{myScript[lang].permissions}</label>
                     </Form.Field>
                     {
-                      user.id != 1 &&
+                      user.id !== 1 &&
                       permissionsNames.map((permission) => {
                         return (
                           <Form.Field key = {permission.id}>
@@ -434,7 +498,7 @@ class UserView extends Component {
               &&
               user.id !== 1
               &&
-              <Button basic color='red' onClick = {() => this.handleRemoveUser(user.id)}>
+              <Button basic color='red' onClick = {this.handleRemoveUser}>
                 {myScript[lang].btns.remove}
               </Button>
             }
@@ -451,6 +515,7 @@ const mapStateToProps = ({authedUser}) => {
   const permissions = authedUser.permissions.map((permission) => permission.name)
   return {
     permissions: authedUser? permissions:[],
+    authedId: authedUser? authedUser.id : null
   };
 }
 

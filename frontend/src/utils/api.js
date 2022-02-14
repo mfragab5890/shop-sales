@@ -57,7 +57,7 @@ fetch(`${api}/logout`, { headers })
   .then(res => res.json())
 
 
-export const saveNewUser = (user) =>
+export const addNewUser = (user) =>
   fetch(`${api}/users/new`, {
     method: 'POST',
     headers: {

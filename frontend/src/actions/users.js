@@ -1,6 +1,6 @@
-import { saveNewUser, getAllUsers, editUser, removeUser } from '../utils/api'
+import { addNewUser, getAllUsers, editUser, removeUser } from '../utils/api'
 import { showLoading, hideLoading } from 'react-redux-loading'
-import { setAuthedUser, resetAuthedUser } from './authedUser'
+import { resetAuthedUser } from './authedUser'
 //handle users action creator
 
 export const RECEIVE_USERS = 'RECEIVE_USERS'
@@ -61,17 +61,23 @@ export const handleGetAllUsers = () => {
   };
 }
 
-export const handleSaveNewUser = (user ) => {
+export const handleAddUser = (newUser) => {
   return (dispatch) => {
     dispatch(showLoading())
-    return saveNewUser(user)
-      .then((authedUser) => {
-        dispatch(addUser(authedUser))
-        dispatch(setAuthedUser(authedUser))
-        dispatch(hideLoading())
-        return true;
+    return addNewUser(newUser)
+      .then((res) => {
+        if (res.success) {
+          const { user } = res
+          dispatch(addUser(user))
+          dispatch(hideLoading())
+          return res;
+        }
+        else {
+          dispatch(hideLoading())
+          return res;
+        }
       }).catch(err => {
-        dispatch(resetAuthedUser())
+        console.warn('While Adding New user Error Raised: ', err );
         dispatch(hideLoading())
         return false;
       })
@@ -88,27 +94,29 @@ export const handleEditUser = (user) => {
           dispatch(modifyUser(editedUser))
         }
         dispatch(hideLoading())
-        return true;
+        return res;
       }).catch(err => {
         dispatch(hideLoading())
         console.warn('user edit error: ', err);
-        return false;
+        return err;
       })
   };
 }
 
-export const handleDeleteUser = (userId) => {
+export const handleDeleteUser = (userId, authedId) => {
   return (dispatch) => {
     dispatch(showLoading())
     return removeUser(userId)
       .then((res) => {
         if (res.success) {
           dispatch(deleteUser(userId))
+          if (userId === authedId) {
+            dispatch(resetAuthedUser())
+          }
         }
         dispatch(hideLoading())
         return true;
       }).catch(err => {
-        dispatch(resetAuthedUser())
         dispatch(hideLoading())
         return false;
       })

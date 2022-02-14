@@ -1,256 +1,179 @@
 import React, { Component } from 'react'
-import { Segment, Form, Header, Image, Message, Dimmer, Loader } from 'semantic-ui-react'
-import bwipjs from 'bwip-js'
-import { handleAddProduct } from '../actions/products'
+import { Segment, Form, Header, Image, Message, Dimmer, Loader, Icon, Button } from 'semantic-ui-react'
+import { handleAddUser } from '../actions/users'
 import { connect } from 'react-redux'
-import ProductView from './ProductView'
 
 class NewUser extends Component {
   state = {
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    formComplete: false,
+    passwordView: false,
+    passwordMatch: false,
+    message: '',
+    error: '',
     myScript: {
       EN: {
-        name: 'Name',
-        description: 'Description',
-        buyingPrice: 'Buying Price',
-        sellingPrice: 'Selling Price',
-        quantity: 'Quantity',
-        minimum: 'Minimum',
-        maximum: 'Maximum',
-        image: 'Image',
-        btns:{
-          submit: 'Submit',
-          print: 'Print Barcode',
-        },
-        error: {
-          name : "Product name can't be empty",
-          description : "Product description can't be empty",
-          sellingPrice: "Product selling price can't be empty",
-          buyingPrice : "Product buying price can't be empty",
-          quantity : "Product quantity can't be empty"
-        }
+        username: 'Username',
+        email: 'Email',
+        password: 'Password Edit',
+        confirmPassword: 'Confirm Password'
+
       },
       AR: {
-        name: 'اسم المنتج',
-        description: 'الوصف',
-        buyingPrice: 'سعر الشراء',
-        sellingPrice: 'سعر البيع',
-        quantity: 'الكمية',
-        minimum: 'الحد الادنى',
-        maximum: 'الحد الاقصى',
-        image: 'صورة المنتج',
-        btns:{
-          submit: 'اضافة',
-          print: 'طباعة الباركود',
-        },
-        error: {
-          name : "يجب ادخال اسم المنتج",
-          description : "يجب ادخال وصف للمنتج",
-          sellingPrice: "يجب ادخال سعر بيع المنتج",
-          buyingPrice : "يجب ادخال سعر شراء المنتج",
-          quantity : "يجب ادخال كمية المنتج",
-        }
-      }
+        username: 'اسم المستخدم',
+        email: 'الإميل',
+        password: 'كلمة السر',
+        confirmPassword: 'تأكيد كلمة السر'
+      },
     },
-    name: '',
-    description: '',
-    buyingPrice: '',
-    sellingPrice: '',
-    quantity: '',
-    minimum: 0,
-    maximum: '',
-    image: '',
-    newImage : '',
-    barcodeImage: '',
-    product: null,
-    error: ''
   }
 
-  onNameChange = async (e) => {
-    const value = e.target.value
-    await this.setState({
-      name : value,
-    })
-  }
-  onDesChange = (e) => {
-    const value = e.target.value
-    this.setState({
-    description : value,
-    })
-  }
-  onBuyPriceChange = (e) => {
-    const value = e.target.value
-    this.setState({
-      buyingPrice : value,
-    })
-  }
-
-  onQuantityChange = (e) => {
-    const value = e.target.value
-    const { maximum } = this.state
-    if (maximum === '' || maximum < value) {
-      this.setState({
-        quantity : value,
-        maximum : value,
+  handleFormData = async (e) => {
+    e.preventDefault()
+    const { name, value } = e.target
+    if (name === 'username') {
+      await this.setState({
+        username : value,
+      })
+    }
+    if (name === 'email') {
+      await this.setState({
+        email : value,
+      })
+    }
+    else if (name === 'password') {
+      await this.setState({
+        password : value
+      })
+    }
+    else if (name === 'confirmPassword') {
+      await this.setState({
+        confirmPassword : value
+      })
+    }
+    const {username, password, email, confirmPassword} = this.state
+    if (username !== '' && email !== '' && password !== '' && confirmPassword !== '') {
+      await this.setState({
+        formComplete : true
       })
     }
     else {
-      this.setState({
-        quantity : value,
-      })
-    }
-
-  }
-
-  onMaxChange = (e) => {
-    const value = e.target.value
-    this.setState({
-      maximum : value,
-    })
-  }
-
-  onMinChange = (e) => {
-    const value = e.target.value
-    this.setState({
-      minimum : value,
-    })
-  }
-
-  onImageChange = async (e) => {
-    const { files } = e.target
-    const file = files[0]
-    let reader = new FileReader();
-    let image = ''
-    reader.onload = (e) => {
-      image = e.target.result
-      this.setState({
-        image: image,
-      })
-    }
-    reader.readAsDataURL(file)
-  }
-
-
-  onSellPriceChange = async (e) => {
-    const value = e.target.value
-    await this.setState({
-      sellingPrice : value,
-    })
-  }
-
-  handleBarcodeGenerator = async (value) => {
-    const newValue = value.toString()
-    try {
-      // The return value is the canvas element
-      await bwipjs.toCanvas('mycanvas', {
-                bcid:        'code128',       // Barcode type
-                text:        newValue,    // Text to encode
-                scale:       2,               // 2x scaling factor
-                height:      10,              // Bar height, in millimeters
-                includetext: true,            // Show human-readable text
-                textxalign:  'center',        // Always good to set this
-            });
       await this.setState({
-        barcodeImage : this.canavasRef.toDataURL()
+        formComplete : false
       })
-    } catch (e) {
-        // `e` may be a string or Error object
     }
-
+    if (password === confirmPassword && password !== '') {
+      await this.setState({
+        passwordMatch : true
+      })
+    }
+    else {
+      await this.setState({
+        passwordMatch : false,
+      })
+    }
   }
 
-  handleNewProduct = async (e) => {
+  handleFormSubmit = (e) => {
     e.preventDefault()
-    const { name, description, buyingPrice, sellingPrice, quantity, minimum, maximum, image } = this.state
-    const { lang, dispatch, authedId } = this.props
-    if (name === '') {
-      const error = this.state.myScript[lang].error.name
+    const {
+      username,
+      email,
+      password,
+      confirmPassword,
+    } = this.state
+    const { lang, dispatch } = this.props
+    let message = ''
+    if (username === '') {
+      message = lang === 'EN' ? 'Username Can Not Be Empty' : 'يجب ادخال اسم المستخدم'
       return this.setState({
-        error: error
+        error: message
       });
     }
-    if (description === '') {
-      const error = this.state.myScript[lang].error.description
+    if (email === '') {
+      message = lang === 'EN' ? 'Email Can Not Be Empty' : 'يجب ادخال الإميل'
       return this.setState({
-        error: error
+        error: message
       });
     }
-    if (buyingPrice === '') {
-      const error = this.state.myScript[lang].error.buyingPrice
+    if (!email.includes("@")) {
+      message = lang === 'EN' ? 'Email Must Be Valid' : 'يجب إدخال الإميل الصحيح'
       return this.setState({
-        error: error
+        error: message
       });
     }
-    if (sellingPrice === '') {
-      const error = this.state.myScript[lang].error.sellingPrice
+    if (password !== '' && confirmPassword !== '' && password !== confirmPassword) {
+      message = lang === 'EN' ? 'Password & Confirmation Do Not Match' : 'كلمة السر الجديدة لا تطابق التاكيد لكلمة السر'
       return this.setState({
-        error: error
+        error: message
       });
     }
-    if (quantity === '') {
-      const error = this.state.myScript[lang].error.quantity
+    if (password === '' || confirmPassword === '') {
+      message = lang === 'EN' ? 'You Must Enter Password And Confirm Password' : 'يجب إدخال كلمة السر و تاكبد كلمة السر'
       return this.setState({
-        error: error
+        error: message
       });
     }
-    const newProduct = {
-      name,
-      description,
-      buyingPrice,
-      sellingPrice,
-      quantity,
-      minimum,
-      maximum,
-      image: image.split(',')[1],
-      created_by: authedId,
-    }
-    await dispatch(handleAddProduct(newProduct, authedId)).then(async (value) => {
-      await this.setState({
-        product: value.newProduct,
-      })
-      await this.handleBarcodeGenerator(value.newProduct.id)
-      let newImage = value.newProduct.image
-      newImage = await newImage.replace("b'", "data:image/jpg;base64,")
-      newImage = await newImage.slice(0, -1)
-      this.setState({
-        newImage: newImage
-      })
 
+    const newUser = {
+      username,
+      email,
+      password,
+    }
+    dispatch(handleAddUser(newUser)).then(res => {
+      if (res.success) {
+        return this.setState({
+          message: res.message,
+          username: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+          formComplete: false,
+          passwordView: false,
+          passwordMatch: false,
+          error: ''
+        });
+      }
+      else {
+        return this.setState({
+          error: res.message,
+          message: ''
+        });
+      }
     })
-    .then(() => {
-      this.setState({
-        name: '',
-        description: '',
-        buyingPrice: '',
-        sellingPrice: '',
-        quantity: '',
-        minimum: 0,
-        maximum: '',
-        image: '',
-      })
+  }
+
+  togglePasswordView = () => {
+    this.setState((prevState) => {
+      return {
+        ...prevState,
+        passwordView : !prevState.passwordView,
+      };
     })
   }
 
   componentDidMount=async () => {
-    this.handleBarcodeGenerator(31)
-    await this.setState({
-      barcodeImage : this.canavasRef.toDataURL()
-    })
+
   }
 
   render() {
     const { theme, lang, loadingBar } = this.props
     const {
-      product,
-      myScript,
+      username,
+      email,
+      password,
+      confirmPassword,
+      passwordView,
+      passwordMatch,
+      formComplete,
+      message,
       error,
-      sellingPrice,
-      name,
-      description,
-      buyingPrice,
-      quantity,
-      minimum,
-      maximum,
-     } = this.state
+      myScript
+    } = this.state
+
     if (loadingBar) {
       return (
         <Segment style = {{width:'100%', height:'100%'}}>
@@ -263,16 +186,105 @@ class NewUser extends Component {
     }
     return (
       <Segment>
-        
+        <Header as='h1' color={theme} textAlign='center' >
+          {lang === 'EN'? 'Add New User' : 'إضافة مستخدم جديد'}
+        </Header>
+        {
+          message !== ''
+          ?<Message positive>
+            <Message.Header>User Added</Message.Header>
+            <p>
+              {message}
+            </p>
+          </Message>
+          :null
+        }
+        {
+          error !== ''
+          ?<Message negative>
+            <Message.Header>An Error Occured!</Message.Header>
+            <p>
+              {error}
+            </p>
+          </Message>
+          :null
+        }
+
+        <Form size='large'>
+          <Segment stacked>
+            <Form.Input
+              label = {myScript[lang].username}
+              fluid icon='user'
+              iconPosition='left'
+              placeholder='Username'
+              name = 'username'
+              focus
+              type = 'text'
+              value = {username}
+              onChange = {this.handleFormData}
+            />
+            <Form.Input
+              label = {myScript[lang].email}
+              fluid icon='mail outline'
+              iconPosition='left'
+              placeholder='Email'
+              name = 'email'
+              type = 'email'
+              value = {email}
+              onChange = {this.handleFormData}
+            />
+            <Form.Input
+              label = {myScript[lang].password}
+              fluid
+              icon='lock'
+              name = 'password'
+              iconPosition='left'
+              placeholder='Password'
+              type= {passwordView ? 'text' : 'password'}
+              value = {password}
+              onChange = {this.handleFormData}
+              action={{
+                color: passwordView ? 'grey' : 'black',
+                icon: passwordView ? 'eye slash outline' : 'eye',
+                onClick:this.togglePasswordView
+              }}
+            />
+            <Form.Input
+              label = {myScript[lang].confirmPassword}
+              fluid
+              icon='lock'
+              name = 'confirmPassword'
+              iconPosition='left'
+              placeholder='Password Confirmation'
+              type= {passwordView ? 'text' : 'password'}
+              value = {confirmPassword}
+              onChange = {this.handleFormData}
+              action={{
+                color: passwordView ? 'grey' : 'black',
+                icon: passwordView ? 'eye slash outline' : 'eye',
+                onClick:this.togglePasswordView
+              }}
+            />
+            {
+              passwordMatch
+              ?<Icon name ='thumbs up outline' color = 'green'/>
+              : password !== '' && confirmPassword !== ''
+              && <Icon name ='x' color = 'red'/>
+            }
+            <Button disabled = {!formComplete || !passwordMatch} color='teal' fluid size='large' onClick={this.handleFormSubmit}>
+              {lang === 'EN'? 'Add User' : 'إضافة المستخدم'}
+            </Button>
+          </Segment>
+        </Form>
+
       </Segment>
     )
   }
 }
 
-const mapStateToProps = ({authedUser, loadingBar}) => {
+const mapStateToProps = ({loadingBar}) => {
   return {
     loadingBar: loadingBar.default === 1? true : false,
-    authedId: authedUser.id,
   };
 }
 
