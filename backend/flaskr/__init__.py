@@ -285,7 +285,7 @@ def create_app(test_config=None):
 
     # create new user endpoint.
     # permission: CREATE_NEW_USER
-    @app.route('/user/new', methods=[ 'POST' ])
+    @app.route('/users/new', methods=[ 'POST' ])
     @jwt_required()
     def signup():
         body = request.get_json()
@@ -319,13 +319,18 @@ def create_app(test_config=None):
         try:
             new_user.insert()
             # get new list id
-            user = Products.query \
+            user = User.query \
                 .filter(User.username == username) \
-                .order_by(db.desc(User.id)).first().format()
+                .order_by(db.desc(User.id)).first().format_no_password()
+            user_permissions = [ Permissions.query.get(user_permission[ 'permission_id' ]).format() for
+                                 user_permission
+                                 in user[ 'permissions' ] ]
+            user[ 'permissions' ] = user_permissions
             return jsonify({
                 'success': True,
-                'message': 'user created successfully',
-                'newProduct': user,
+                'message': 'user created successfully, Please Go To Edit User Permissions To Give The User Required '
+                           'Access',
+                'user': user,
             })
         except Exception as e:
             print(e)
@@ -342,15 +347,21 @@ def create_app(test_config=None):
     def delete_user(user_id):
         if user_id != 1:
             user = User.query.get(user_id)
-            try:
-                user.delete()
+            if user is not None:
+                try:
+                    user.delete()
+                    return jsonify({
+                        'success': True,
+                        'message': 'user of ID: ' + str(user_id) + ' deleted successfully',
+                    })
+                except Exception as e:
+                    print(e)
+                    abort(400)
+            else:
                 return jsonify({
-                    'success': True,
-                    'message': 'user of ID: ' + user_id + ' deleted successfully',
+                    'success': False,
+                    'message': 'user of ID: ' + str(user_id) + ' does not exist',
                 })
-            except Exception as e:
-                print(e)
-                abort(400)
         else:
             return jsonify({
                 'success': True,
