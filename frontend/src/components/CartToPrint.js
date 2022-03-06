@@ -5,12 +5,13 @@ import { Button } from 'semantic-ui-react'
 
 class CartToPrint extends Component {
   render() {
-    const { theme, lang, cartItems, total, totalQuantity, printing, handleAddOrder, handleEditQuantity, myScript } = this.props
+    const { theme, lang, cartItems, total, totalQuantity, printing, handleAddOrder, handleEditQuantity, myScript, discountAmount } = this.props
     return (
       <Fragment>
         <Cart
           lang = {lang}
           theme = {theme}
+          discountAmount = {discountAmount}
           cartItems = {cartItems}
           total = {total}
           totalQuantity = {totalQuantity}
@@ -20,7 +21,7 @@ class CartToPrint extends Component {
         <ReactToPrint
           onBeforePrint = {handleAddOrder}
           trigger={() => {
-            return <Button color = {theme !== 'basic'? theme : 'black'} attached='bottom' disabled = {total === 0 || printing === true? true : false}>{myScript}</Button>;
+            return <Button color = {theme !== 'basic'? theme : 'black'} attached='bottom' disabled = {totalQuantity === 0 || printing === true? true : false}>{myScript}</Button>;
           }}
           content={() => this.cartRef }
         />

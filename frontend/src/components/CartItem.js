@@ -53,7 +53,7 @@ export default class CartItems extends Component {
         </Table.Cell>
           <Table.Cell singleLine onClick = {this.showQantityInput}>
             {
-              editQantity
+              editQantity && (item.name !== 'Discount' ||  item.name !== 'خصم') 
               ? <Input
                 value = {quantity}
                 onBlur = {this.handleQuantityChange}

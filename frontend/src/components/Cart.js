@@ -11,23 +11,26 @@ export default class Cart extends Component {
 
   render() {
 
-    const { lang, cartItems, total, totalQuantity, handleEditQuantity } = this.props
+    const { lang, cartItems, total, totalQuantity, handleEditQuantity, discountAmount } = this.props
     const myScript = {
       EN:{
         item: 'Item',
         price: 'Price',
         quantity: 'Qty',
         total: 'Total',
-        totalQuantity: 'items'
+        totalQuantity: 'items',
+        discount: 'Discount',
       },
       AR:{
         item: 'الصنف',
         price: 'السعر',
         quantity: 'الكمية',
         total: 'الاجمالي',
-        totalQuantity: 'الاصناف'
+        totalQuantity: 'الاصناف',
+        discount: 'خصم',
       }
     }
+
 
     return (
       <div>
@@ -52,8 +55,20 @@ export default class Cart extends Component {
                  />
                )
              })
-
-
+           }
+           {
+              discountAmount > 0
+              &&
+              <CartItem
+               item = {{
+                 name: myScript[lang].discount,
+                 price: discountAmount,
+                 total: discountAmount,
+                 qty: 1,
+                }
+               }
+               key = {'discount'}
+              />
            }
         </Table.Body>
         <Table.Footer fullWidth>

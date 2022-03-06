@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Grid, Image, Input, List, Message, Dimmer, Loader, Segment } from 'semantic-ui-react'
+import { Grid, Image, Input, List, Message, Dimmer, Loader, Segment, Dropdown } from 'semantic-ui-react'
 import { getProductById, searchProducts } from '../utils/api'
 import { handleAddOrder } from '../actions/orders'
 import CartToPrint from './CartToPrint'
@@ -19,6 +19,9 @@ class NewOrder extends Component {
     results : [],
     noResults: false,
     printing: false,
+    discount: 0,
+    discountType: 1,
+    discountAmount: 0
   }
 
   onBarcodeChange = (e) => {
@@ -234,6 +237,45 @@ class NewOrder extends Component {
     })
   }
 
+  onDiscountTypeChange = (e,{value}) => {
+    this.setState({
+      discountType: value,
+    })
+  }
+
+  onDiscountChange = (e, {value}) => {
+    this.setState({
+      discount: value,
+    })
+  }
+
+  handleAddDiscount = (e) => {
+    const { key } = e
+    if (key === 'Enter') {
+      const { discount, discountType, total } = this.state
+      let newTotal = 0
+      let discountAmount = 0
+      if (total !== 0) {
+
+        if (discountType === 1) {
+          newTotal = total * (1-(discount/100))
+        }
+
+        else {
+          newTotal = total- discount
+        }
+
+        discountAmount = total - newTotal
+
+        return this.setState({
+          total: newTotal,
+          discountAmount: discountAmount,
+          discount: 0,
+        });
+      }
+    }
+  }
+
   componentDidMount(){
     this.inputRef.focus()
   }
@@ -241,7 +283,7 @@ class NewOrder extends Component {
   render() {
 
     const { theme, lang, loadingBar } = this.props
-    const { barcode, searchTerm, cartItems, total, totalQuantity, loading, results, noResults, printing } = this.state
+    const { barcode, searchTerm, cartItems, total, totalQuantity, loading, results, noResults, printing, discount, discountType, discountAmount } = this.state
     const myScript = {
       EN:{
         item: 'Item',
@@ -249,6 +291,12 @@ class NewOrder extends Component {
         quantity: 'Qty',
         total: 'Total',
         description: 'Description',
+        discount: 'Discount',
+        discountTypes: {
+          name: 'Discount Type',
+          percentage: 'Percentage',
+          amount: 'Cash Back'
+        },
         search:{
           barcode: 'Barcode',
           barcodePlaceholder: 'Search By Barcode',
@@ -267,6 +315,12 @@ class NewOrder extends Component {
         quantity: 'الكمية',
         total: 'الاجمالي',
         description: 'الوصف',
+        discount: 'خصم',
+        discountTypes: {
+          name: 'نوع الخصم',
+          percentage: 'نسبة',
+          amount: 'مبلغ'
+        },
         search:{
           barcode: 'باركود',
           barcodePlaceholder: 'البحث بالباركود',
@@ -279,6 +333,10 @@ class NewOrder extends Component {
         },
       }
     }
+    const discountOptions = [
+      { key: 1, text: myScript[lang].discountTypes.percentage, value: 1, icon: 'percent' },
+      { key: 2, text: myScript[lang].discountTypes.amount, value: 2, icon: 'pound' },
+    ]
 
     if (loadingBar) {
       return (
@@ -291,8 +349,8 @@ class NewOrder extends Component {
       )
     }
     return (
-      <Grid stackable columns={2} celled='internally'>
-        <Grid.Row>
+      <Grid stackable celled='internally'>
+        <Grid.Row columns={2}>
           <Grid.Column width={8}>
             <Input
               icon = 'search'
@@ -317,20 +375,44 @@ class NewOrder extends Component {
             />
           </Grid.Column>
         </Grid.Row>
-        <Grid.Row>
+        <Grid.Row columns={1}>
           <Grid.Column width={8}>
-            <CartToPrint
-              lang = {lang}
-              theme = {theme}
-              cartItems = {cartItems}
-              total = {total}
-              totalQuantity = {totalQuantity}
-              ref = {(el) => this.cartRef = el}
-              handleEditQuantity = { this.handleEditQuantity }
-              printing = {printing}
-              handleAddOrder = {this.handleAddOrder}
-              myScript = {myScript[lang].btns.print}
+            <Grid.Row>
+              <CartToPrint
+                lang = {lang}
+                theme = {theme}
+                discountAmount = {discountAmount}
+                cartItems = {cartItems}
+                total = {total}
+                totalQuantity = {totalQuantity}
+                ref = {(el) => this.cartRef = el}
+                handleEditQuantity = { this.handleEditQuantity }
+                printing = {printing}
+                handleAddOrder = {this.handleAddOrder}
+                myScript = {myScript[lang].btns.print}
               />
+            </Grid.Row>
+            <Grid.Row stretched>
+              <Input
+                label = {myScript[lang].discount}
+                placeholder = {myScript[lang].discount}
+                value = {discount}
+                onChange = {this.onDiscountChange}
+                onKeyPress={this.handleAddDiscount}
+                type = {'number'}
+                disabled = {total === 0 ? true : false}
+              />
+              <Dropdown
+                inline
+                text= { discountType === 1 ? myScript[lang].discountTypes.percentage : myScript[lang].discountTypes.amount }
+                icon= { discountType === 1 ? 'percent' : 'pound' }
+                onChange={this.onDiscountTypeChange}
+                value = {discountType}
+                options={discountOptions}
+                direction = 'left'
+              />
+            </Grid.Row>
+
           </Grid.Column>
           <Grid.Column width={8}>
             {

@@ -7,14 +7,22 @@ export default class ReceiptView extends Component {
     cartItems: [],
     total: 0,
     totalQuantity: 0,
+    discount: 0,
   }
 
   componentDidMount(){
     const { total, totalQuantity, cartItems } = this.props
+    let realTotal = 0
+    let discount = 0
+    cartItems.map((item) => realTotal += item.total_price)
+    if (realTotal !== total) {
+      discount = realTotal - total
+    }
     this.setState({
       cartItems: cartItems,
       total: total,
-      totalQuantity: totalQuantity
+      totalQuantity: totalQuantity,
+      discount: discount
     })
   }
 
@@ -60,7 +68,7 @@ export default class ReceiptView extends Component {
   render() {
 
     const { lang } = this.props
-    const { total, totalQuantity, cartItems } = this.state
+    const { total, totalQuantity, cartItems, discount } = this.state
     const myScript = {
       EN:{
         item: 'Item',
@@ -97,13 +105,25 @@ export default class ReceiptView extends Component {
                  <ReceiptItems
                   item = {item}
                   key = {item.id}
+                  lang = {lang}
                   handleEditQuantity = {this.handleQuantityChange}
                  />
                )
              })
-
+           }
+           { discount > 0
+             &&
+             <ReceiptItems
+              item = {{
+                product_id: 'discount',
+                qty: 1,
+                total_price: discount,
+               }}
+              key = {'discount'}
+             />
 
            }
+
         </Table.Body>
         <Table.Footer fullWidth>
         <Table.Row>

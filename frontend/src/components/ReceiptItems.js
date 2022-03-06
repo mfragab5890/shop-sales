@@ -9,11 +9,21 @@ export default class ReceiptItems extends Component {
   }
 
   componentDidMount = async () => {
-    const productId = this.props.item.product_id
-    await getProductById(productId)
-    .then(({name}) => this.setState({
-      name: name,
-    }))
+    const id = this.props.item.product_id
+    if (id !== 'discount') {
+      await getProductById(id)
+      .then(({name}) => this.setState({
+        name: name,
+      }))
+    }
+    else {
+      const { lang } = this.props
+      const name = lang === 'EN' ? 'Discount' : 'خصم'
+      return this.setState({
+        name: name,
+      });
+    }
+
 
   }
 
