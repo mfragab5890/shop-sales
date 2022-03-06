@@ -66,11 +66,10 @@ class AllProducts extends Component {
 
   handlePaginationChange = async (e, { activePage }) => {
     const { dispatch } = this.props
-    const results  = await dispatch(handleReceiveProducts(activePage))
     await this.setState({
-      products: results.products,
       page: activePage
     })
+    await dispatch(handleReceiveProducts(activePage))
   }
 
   confirmDelete = (productId,message) => {
