@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Grid, Image, Input, List, Message, Dimmer, Loader, Segment, Dropdown } from 'semantic-ui-react'
+import { Grid, Image, Input, List, Message, Dimmer, Loader, Segment, Dropdown, Button } from 'semantic-ui-react'
 import { getProductById, searchProducts } from '../utils/api'
 import { handleAddOrder } from '../actions/orders'
 import CartToPrint from './CartToPrint'
@@ -275,6 +275,15 @@ class NewOrder extends Component {
       }
     }
   }
+  confirmClearCart = () => {
+    const { lang } = this.props
+    const message = lang === 'EN'
+      ? `Do You Want To Clear The Cart?`
+      : `هل تريد افراغ محتويات الفاتورة؟`
+    if (window.confirm(message)) {
+      this.clearCart()
+    }
+  }
 
   componentDidMount(){
     this.inputRef.focus()
@@ -305,8 +314,8 @@ class NewOrder extends Component {
           noResults: 'Sorry There Are No Products Name or Description Match Or Contain your Search Term',
         },
         btns:{
-          submit: 'Submit',
           print: 'Print Reciept',
+          clear: 'Clear Cart'
         },
       },
       AR:{
@@ -330,6 +339,7 @@ class NewOrder extends Component {
         },
         btns:{
           print: 'طباعة الايصال',
+          clear: 'حذف الفاتورة'
         },
       }
     }
@@ -351,7 +361,7 @@ class NewOrder extends Component {
     return (
       <Grid stackable celled='internally'>
         <Grid.Row columns={2}>
-          <Grid.Column width={8}>
+          <Grid.Column width={9}>
             <Input
               icon = 'search'
               label = {myScript[lang].search.barcode}
@@ -363,7 +373,7 @@ class NewOrder extends Component {
               type = {'number'}
             />
           </Grid.Column>
-          <Grid.Column width={8}>
+          <Grid.Column width={7}>
             <Input
               icon='search'
               loading = {loading}
@@ -376,7 +386,7 @@ class NewOrder extends Component {
           </Grid.Column>
         </Grid.Row>
         <Grid.Row columns={1}>
-          <Grid.Column width={8}>
+          <Grid.Column width={9}>
             <Grid.Row>
               <CartToPrint
                 lang = {lang}
@@ -410,7 +420,9 @@ class NewOrder extends Component {
                 value = {discountType}
                 options={discountOptions}
                 direction = 'left'
+                disabled = {total === 0 ? true : false}
               />
+            <Button icon = 'eraser' label = {myScript[lang].btns.clear} floated='right' onClick = {this.confirmClearCart}/>
             </Grid.Row>
 
           </Grid.Column>
