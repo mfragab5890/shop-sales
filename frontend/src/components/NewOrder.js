@@ -209,6 +209,9 @@ class NewOrder extends Component {
       total : 0,
       totalCost : 0,
       totalQuantity: 0,
+      discount: 0,
+      discountType: 1,
+      discountAmount: 0,
     })
   }
 
@@ -403,26 +406,32 @@ class NewOrder extends Component {
               />
             </Grid.Row>
             <Grid.Row stretched>
-              <Input
-                label = {myScript[lang].discount}
-                placeholder = {myScript[lang].discount}
-                value = {discount}
-                onChange = {this.onDiscountChange}
-                onKeyPress={this.handleAddDiscount}
-                type = {'number'}
-                disabled = {total === 0 ? true : false}
-              />
-              <Dropdown
-                inline
-                text= { discountType === 1 ? myScript[lang].discountTypes.percentage : myScript[lang].discountTypes.amount }
-                icon= { discountType === 1 ? 'percent' : 'pound' }
-                onChange={this.onDiscountTypeChange}
-                value = {discountType}
-                options={discountOptions}
-                direction = 'left'
-                disabled = {total === 0 ? true : false}
-              />
-            <Button icon = 'eraser' label = {myScript[lang].btns.clear} floated='right' onClick = {this.confirmClearCart}/>
+
+              <Segment >
+                <Button icon = 'eraser' label = {myScript[lang].btns.clear} floated='right' onClick = {this.confirmClearCart}/>
+                <Dropdown
+                  inline
+                  button
+                   className='icon'
+                  text= { discountType === 1 ? myScript[lang].discountTypes.percentage : myScript[lang].discountTypes.amount }
+                  icon= { discountType === 1 ? 'percent' : 'pound' }
+                  onChange={this.onDiscountTypeChange}
+                  value = {discountType}
+                  options={discountOptions}
+                  direction = 'left'
+                  disabled = {total === 0 ? true : false}
+                />
+                <Input
+                  label = {myScript[lang].discount}
+                  placeholder = {myScript[lang].discount}
+                  value = {discount}
+                  onChange = {this.onDiscountChange}
+                  onKeyPress={this.handleAddDiscount}
+                  type = {'number'}
+                  disabled = {total === 0 ? true : false}
+                  color = 'grey'
+                />
+              </Segment>
             </Grid.Row>
 
           </Grid.Column>
