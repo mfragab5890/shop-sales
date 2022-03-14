@@ -64,7 +64,7 @@ export default class Cart extends Component {
                  name: myScript[lang].discount,
                  price: discountAmount,
                  total: discountAmount,
-                 qty: 1,
+                 quantity: 1,
                 }
                }
                key = {'discount'}
